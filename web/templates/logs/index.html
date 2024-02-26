@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Главная страница {% endblock %}
+{% block header %} {% include 'includes/header.html' %} {% endblock %}
+{% block content %}
+
+<audio id="notificationSound" preload="auto" src="{% static 'audio/face-notification.mp3' %}"></audio>
+
+<div id="notificationContainer" class="position-fixed bottom-0 end-0 p-3" style="display: none;">
+    <div class="card" id="notificationWrapper">
+        <div class="card-header bg-danger text-dark d-flex justify-content-between">
+            <strong>Уведомление</strong>
+            <button type="button" class="btn-close"></button>
+        </div>
+        <div class="card-body text-dark">
+            <!-- Здесь будет отображаться сообщение из WebSocket -->
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<script>
+    const socket = new WebSocket('ws://127.0.0.1:8000/ws');
+    const notificationSound = document.getElementById('notificationSound');
+
+    socket.onmessage = function (event) {
+        try {
+            console.log(event);
+            $('#notificationContainer').show();
+            notificationSound.play();
+            setTimeout(function () {
+                $('#notificationContainer').hide();
+            }, 5000); // Скрыть уведомление через 5 секунд
+            $('#notificationWrapper .card-body').text(event.data); // Вставляем сообщение из WebSocket
+        } catch (e) {
+            console.log('Error:', e.message);
+        }
+    };
+
+    // Добавляем обработчик события клика на кнопку закрытия уведомления
+    $('.btn-close').click(function () {
+        $('#notificationContainer').hide();
+    });
+</script>
+
+
+
+
+
+{% endblock %}

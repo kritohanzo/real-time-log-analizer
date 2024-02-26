@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %} Главная страница {% endblock %}
+{% block header %} {% include 'includes/header.html' %} {% endblock %}
+{% block content %}
+<div class="container mt-5 text-center">
+    <h2 class="mb-4">Список пользователей</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Логин</th>
+                <th scope="col">Имя</th>
+                <th scope="col">Фамилия</th>
+                <th scope="col">Отчество</th>
+                <th scope="col">Почта</th>
+                <th scope="col">Роль</th>
+                <th scope="col">Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <th scope="row">{{ user.id }}</th>
+                <td>{{ user.username }}</td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.surname }}</td>
+                <td>{{ user.patronymic }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    <a class="col-4 btn btn-outline-light mx-1">Удалить</a> / <a class="col-4 btn btn-outline-light mx-1">Изменить</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
