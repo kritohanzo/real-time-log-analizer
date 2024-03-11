@@ -25,6 +25,9 @@ class LogFile(models.Model):
         null=True,
         related_name="log_files",
     )
+    last_positions = models.IntegerField(
+        verbose_name="Последняя позиция при чтении", default=0
+    )
 
     class Meta:
         verbose_name_plural = "Лог-файлы"
@@ -40,7 +43,7 @@ class AnomalousLogEvent(models.Model):
         verbose_name="Текст события лог-файла", max_length=255
     )
     datetime = models.DateTimeField(
-        verbose_name="Дата и время события лог-файла", default=timezone.now()
+        verbose_name="Дата и время события лог-файла", auto_now_add=True
     )
     log_file = models.ForeignKey(
         LogFile,

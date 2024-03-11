@@ -21,6 +21,7 @@ class CreateUserView(views.View):
 class UsersView(views.View):
     def get(self, request, *args, **kwargs):
         channel_layer = get_channel_layer()
+        print(channel_layer.__dict__)
         async_to_sync(channel_layer.group_send)("logs", message={
             "type": "websocket.broadcast",
             "message": "Кто-то проверяет пользователей =)"
