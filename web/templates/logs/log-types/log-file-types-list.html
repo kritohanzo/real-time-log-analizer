@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %} Главная страница {% endblock %}
+{% block header %} {% include 'includes/header.html' %} {% endblock %}
+{% block content %}
+<div class="container mt-5 text-center">
+    <h2 class="mb-4">Список лог-файлов</h2>
+    <a class="col-4 btn btn-outline-light mx-1 mb-4">Создать протокол / ПО</a>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Паттерн</th>
+                <th scope="col">Тип протокола / ПО</th>
+                <th scope="col">Регулярное выражение</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for search_pattern in search_patterns %}
+            <tr>
+                <th scope="row">{{ search_pattern.id }}</th>
+                <td>{{ search_pattern.pattern }}</td>
+                <td>{{ search_pattern.type }}</td>
+                <td>{{ search_pattern.regex }}</td>
+                <td>
+                    <a class="col-4 btn btn-outline-light mx-1">Удалить</a> / <a class="col-4 btn btn-outline-light mx-1">Изменить</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

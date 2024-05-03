@@ -25,7 +25,7 @@ class LoginForm(AuthenticationForm):
     )
 
 
-class CreateUserForm(forms.Form):
+class UserForm(forms.ModelForm):
     username = forms.CharField(
         label="Логин",
         max_length=64,
@@ -83,3 +83,7 @@ class CreateUserForm(forms.Form):
             attrs={"placeholder": "Выберите роль", "class": "form-select"}
         ),
     )
+
+    class Meta:
+        model = User
+        fields = ("username", "name", "surname", "patronymic", "email", "password", "role")

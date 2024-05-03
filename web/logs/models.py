@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 
 
-class LogFileType(models.Model):
+class LogType(models.Model):
     name = models.CharField(
         verbose_name="Название типа лог-файла", max_length=64
     )
@@ -16,11 +16,35 @@ class LogFileType(models.Model):
         return self.name
 
 
+class SearchPattern(models.Model):
+    pattern = models.CharField(
+        verbose_name="Поисковый паттерн", max_length=255
+    )
+    type = models.ForeignKey(
+        LogType,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="search_patterns",
+    )
+    regex = models.BooleanField(
+        verbose_name="Регулярное выражение",
+        default=False,
+    )
+
+    class Meta:
+        verbose_name_plural = "Поисковые паттерны"
+        verbose_name = "Поисковый паттерн"
+        ordering = ("id",)
+
+    def __str__(self):
+        return self.pattern
+
+
 class LogFile(models.Model):
     name = models.CharField(verbose_name="Название лог-файла", max_length=255)
     path = models.CharField(verbose_name="Путь до лог-файла", max_length=255)
     type = models.ForeignKey(
-        LogFileType,
+        LogType,
         on_delete=models.SET_NULL,
         null=True,
         related_name="log_files",
@@ -38,7 +62,7 @@ class LogFile(models.Model):
         return self.name
 
 
-class AnomalousLogEvent(models.Model):
+class AnomalousEvent(models.Model):
     text = models.CharField(
         verbose_name="Текст события лог-файла", max_length=255
     )

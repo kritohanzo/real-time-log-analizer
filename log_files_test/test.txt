@@ -29,3 +29,5 @@ AUTH ERROR
 AUTH ERROR
 AUTH ERROR
 mister_monster try login: AUTH ERROR
+login "root" attempt: wrong password, auth error
+login "root" attempt: wrong password, auth error

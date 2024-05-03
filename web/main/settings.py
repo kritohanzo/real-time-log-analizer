@@ -4,14 +4,15 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-ENV_PATH = os.path.join(BASE_DIR.parent, ".env")
-load_dotenv(dotenv_path=ENV_PATH, override=True)
+# ENV_PATH = os.path.join(BASE_DIR, ".env")
+
+load_dotenv(override=True)
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-w(5yuunt#i+31tt@912&lcw&1&(2=)8$omvt&mp&b_9mc2tw5*")
 
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", ["localhost, 127.0.0.1"]).split(",")
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 INSTALLED_APPS = [
     "daphne",
@@ -23,6 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "users.apps.UsersConfig",
     "logs.apps.LogsConfig",
+    "core.apps.CoreConfig",
 ]
 
 MIDDLEWARE = [
@@ -54,13 +56,24 @@ TEMPLATES = [
     },
 ]
 
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("POSTGRES_DB", "postgres"),
+            "USER": os.getenv("POSTGRES_USER", "postgres"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "123456"),
+            "HOST": os.getenv("DB_HOST", "127.0.0.1"),
+            "PORT": int(os.getenv("DB_PORT", "5432")),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -86,6 +99,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+STATIC_ROOT =  os.path.join(BASE_DIR, "collected_static")
 STATICFILES_DIR = os.path.join(BASE_DIR, "static")
 STATICFILES_DIRS = [STATICFILES_DIR]
 
@@ -100,7 +114,7 @@ LOGOUT_URL = "auth:logout"
 WSGI_APPLICATION = "main.wsgi.application"
 ASGI_APPLICATION = 'main.asgi.application'
 
-CHANNEL_REDIS_BROKER_URL = 'redis://localhost:6379/1'
+CHANNEL_REDIS_BROKER_URL = 'redis://redis/1'
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -110,7 +124,7 @@ CHANNEL_LAYERS = {
     },
 }
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://redis/0'
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 # CELERY_TASK_TRACK_STARTED = True
 # CELERY_TASK_TIME_LIMIT = 30 * 60

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %} Выход из аккаунта {% endblock %}
+{% block header %} {% endblock %}
+{% block content %}
+<div class="min-vh-100 d-flex flex-column justify-content-center align-items-center">
+    <div class="mb-2">{{ message }}</div>
+    <a class="col-3 btn btn-outline-light mx-1" href="{% url 'logs:index' %}">На главную</a>
+</div>
+{% endblock %}

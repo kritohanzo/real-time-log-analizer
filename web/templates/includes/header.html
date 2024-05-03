@@ -2,14 +2,13 @@
     <div class="d-flex justify-content-between">
         <div class="col-6 d-flex justify-content-start">
             {% if request.user.is_authenticated %}
-            <a class="col-4 btn btn-outline-light mx-1">Добавить новый лог-файл</a>
-            <a class="col-4 btn btn-outline-light mx-1">Добавить новый тип протокола / ПО</a>
-            <a class="col-4 btn btn-outline-light mx-1">Добавить новый паттерн поиска</a>
+            <a class="col-4 btn btn-outline-light mx-1" href="{% url 'logs:log_files_list' %}">Лог-файлы</a>
+            <a class="col-4 btn btn-outline-light mx-1" href="{% url 'logs:log_types_list' %}">Типы протоколов / ПО</a>
             {% endif %}
         </div>
         <div class="col-3 d-flex justify-content-end">
 
-            {% if request.user.role == 'admin' %}
+            {% if request.user.role == 'ADMIN' %}
             <a class="col-6 btn btn-outline-light mx-1" href="{% url 'auth:users' %}">Пользователи системы</a>
             {% endif %}
 

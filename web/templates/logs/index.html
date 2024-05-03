@@ -13,7 +13,7 @@
             <button type="button" class="btn-close"></button>
         </div>
         <div class="card-body text-dark">
-            <!-- Здесь будет отображаться сообщение из WebSocket -->
+            <!-- websocket message -->
         </div>
     </div>
 </div>
@@ -31,14 +31,13 @@
             notificationSound.play();
             setTimeout(function () {
                 $('#notificationContainer').hide();
-            }, 5000); // Скрыть уведомление через 5 секунд
-            $('#notificationWrapper .card-body').text(event.data); // Вставляем сообщение из WebSocket
+            }, 5000);
+            $('#notificationWrapper .card-body').text(event.data);
         } catch (e) {
             console.log('Error:', e.message);
         }
     };
 
-    // Добавляем обработчик события клика на кнопку закрытия уведомления
     $('.btn-close').click(function () {
         $('#notificationContainer').hide();
     });
