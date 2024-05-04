@@ -1,0 +1,21 @@
+<script>
+    var anchorId = window.location.hash.substring(1);
+    var element = document.getElementById(anchorId);
+    var counter = 0;
+    if (element) {
+        var isChange = true;
+        function toggleBackgroundColor() {
+            if (counter == 6) {
+                return
+            }
+            if (isChange) {
+                element.classList.add('table-danger');
+            } else {
+                element.classList.remove('table-danger');
+            }
+            isChange = !isChange;
+            counter++;
+        }
+        setInterval(toggleBackgroundColor, 500);
+    }
+</script>

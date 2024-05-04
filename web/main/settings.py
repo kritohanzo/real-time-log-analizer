@@ -108,21 +108,28 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 LOGIN_URL = "auth:login"
-LOGIN_REDIRECT_URL = "logs:index"
+LOGIN_REDIRECT_URL = "logs:main_page"
 LOGOUT_URL = "auth:logout"
 
 WSGI_APPLICATION = "main.wsgi.application"
 ASGI_APPLICATION = 'main.asgi.application'
 
 CHANNEL_REDIS_BROKER_URL = 'redis://redis/1'
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [CHANNEL_REDIS_BROKER_URL],
+if DEBUG:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer"
+        }
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [CHANNEL_REDIS_BROKER_URL],
+            },
         },
-    },
-}
+    }
 
 CELERY_BROKER_URL = 'redis://redis/0'
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'

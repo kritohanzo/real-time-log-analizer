@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView
 from django import views
 import datetime
-from logs.forms import LogFileForm, LogTypeForm
+from logs.forms import LogFileForm, LogTypeForm, SearchPatternForm
 from logs.models import LogFile, LogType, SearchPattern
 
 
@@ -29,12 +29,12 @@ class LogFileAddView(views.View):
         if not form.is_valid():
             return render(request, template_name="logs/log-files/log-file-form.html", context={"form": form})
         LogFile.objects.create(**form.cleaned_data)
-        return render(request, template_name="success.html", context={"message": "Вы успеншо добавили лог-файл!"})
+        return render(request, template_name="success.html", context={"message": "Вы успеншо добавили лог-файл"})
 
 
 class LogFileDetailView(views.View):
     def get(self, request, log_file_id, *args, **kwargs):
-        log_file = LogFile.objects.all(id=log_file_id)
+        log_file = get_object_or_404(LogFile, id=log_file_id)
         return render(request, template_name="logs/log-files/log-files-list.html", context={"log_file": log_file})
 
 
@@ -50,14 +50,14 @@ class LogFileEditView(views.View):
         if not form.is_valid():
             return render(request, template_name="logs/log-files/log-file-form.html", context={"form": form, "is_edit": True})
         form.save()
-        return render(request, template_name="success.html", context={"message": "Вы успеншо изменили лог-файл!"})
+        return render(request, template_name="success.html", context={"message": "Вы успеншо изменили лог-файл"})
 
 
 class LogFileDeleteView(views.View):
     def get(self, request, log_file_id, *args, **kwargs):
         log_file = get_object_or_404(LogFile, id=log_file_id)
         log_file.delete()
-        return render(request, template_name="success.html", context={"message": "Вы успеншо удалили лог-файл!"})
+        return render(request, template_name="success.html", context={"message": "Вы успеншо удалили лог-файл"})
 
 
 # Log Type Views
@@ -78,13 +78,15 @@ class LogTypeAddView(views.View):
         form = LogTypeForm(request.POST)
         if not form.is_valid():
             return render(request, template_name="logs/log-types/log-type-form.html", context={"form": form})
-        LogType.objects.create(**form.cleaned_data)
-        return render(request, template_name="success.html", context={"message": "Вы успеншо добавили протокол / ПО!"})
+        search_patterns = form.cleaned_data.pop("search_patterns")
+        log_type = LogType.objects.create(**form.cleaned_data)
+        log_type.search_patterns.set(search_patterns)
+        return render(request, template_name="success.html", context={"message": "Вы успешно добавили протокол / ПО"})
 
 
 class LogTypeDetailView(views.View):
     def get(self, request, log_type_id, *args, **kwargs):
-        log_type = LogType.objects.all(id=log_type_id)
+        log_type = get_object_or_404(LogType, id=log_type_id)
         return render(request, template_name="logs/log-types/log-type-detail.html", context={"log_type": log_type})
 
 
@@ -100,11 +102,63 @@ class LogTypeEditView(views.View):
         if not form.is_valid():
             return render(request, template_name="logs/log-types/log-type-form.html", context={"form": form, "is_edit": True})
         form.save()
-        return render(request, template_name="success.html", context={"message": "Вы успеншо изменили протокол / ПО!"})
+        search_patterns = form.cleaned_data.pop("search_patterns")
+        log_type.search_patterns.set(search_patterns)
+        return render(request, template_name="success.html", context={"message": "Вы успешно изменили протокол / ПО"})
 
 
 class LogTypeDeleteView(views.View):
     def get(self, request, log_type_id, *args, **kwargs):
         log_type = get_object_or_404(LogType, id=log_type_id)
         log_type.delete()
-        return render(request, template_name="success.html", context={"message": "Вы успеншо удалили протокол / ПО!"})
+        return render(request, template_name="success.html", context={"message": "Вы успеншо удалили протокол / ПО"})
+    
+
+# Search Patterns Views
+
+
+class SearchPatternListView(views.View):
+    def get(self, request, *args, **kwargs):
+        search_patterns = SearchPattern.objects.all()
+        return render(request, template_name="logs/search-patterns/search-patterns-list.html", context={"search_patterns": search_patterns})
+    
+
+class SearchPatternAddView(views.View):
+    def get(self, request, *args, **kwargs):
+        form = SearchPatternForm()
+        return render(request, template_name="logs/search-patterns/search-pattern-form.html", context={"form": form})
+    
+    def post(self, request, *args, **kwargs):
+        form = SearchPatternForm(request.POST)
+        if not form.is_valid():
+            return render(request, template_name="logs/search-patterns/search-pattern-form.html", context={"form": form})
+        SearchPattern.objects.create(**form.cleaned_data)
+        return render(request, template_name="success.html", context={"message": "Вы успешно добавили поисковый паттерн"})
+
+
+class SearchPatternDetailView(views.View):
+    def get(self, request, search_pattern_id, *args, **kwargs):
+        search_pattern = get_object_or_404(SearchPattern, id=search_pattern_id)
+        return render(request, template_name="logs/search-patterns/search-pattern-detail.html", context={"search_pattern": search_pattern})
+
+
+class SearchPatternEditView(views.View):
+    def get(self, request, search_pattern_id, *args, **kwargs):
+        search_pattern = get_object_or_404(SearchPattern, id=search_pattern_id)
+        form = SearchPatternForm(instance=search_pattern)
+        return render(request, template_name="logs/search-patterns/search-pattern-form.html", context={"form": form, "search_pattern_id": search_pattern_id, "is_edit": True})
+    
+    def post(self, request, search_pattern_id, *args, **kwargs):
+        search_pattern = get_object_or_404(SearchPattern, id=search_pattern_id)
+        form = SearchPatternForm(request.POST, instance=search_pattern)
+        if not form.is_valid():
+            return render(request, template_name="logs/search-patterns/search-pattern-form.html", context={"form": form, "is_edit": True})
+        form.save()
+        return render(request, template_name="success.html", context={"message": "Вы успешно изменили поисковый паттерн"})
+
+
+class SearchPatternDeleteView(views.View):
+    def get(self, request, search_pattern_id, *args, **kwargs):
+        search_pattern = get_object_or_404(SearchPattern, id=search_pattern_id)
+        search_pattern.delete()
+        return render(request, template_name="success.html", context={"message": "Вы успеншо удалили поисковый паттерн"})

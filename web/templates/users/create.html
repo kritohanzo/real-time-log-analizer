@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %} Создание пользователя {% endblock %}
-{% block header %} {% endblock %}
+{% block header %} {% include 'includes/header.html' %} {% endblock %}
 {% block content %}
 <div class="min-vh-100 d-flex justify-content-center align-items-center">
     <form class="g-3 w-25" action="/auth/create/" method="post">

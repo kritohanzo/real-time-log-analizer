@@ -2,9 +2,9 @@
 
 {% block title %}
 {% if is_edit %}
-    Изменение лог-файла
+    Изменение типа протокола / ПО
 {% else %}
-    Добавление лог-файла
+    Добавление типа протокола / ПО
 {% endif %}
 {% endblock %}
 
@@ -14,9 +14,9 @@
 <div class="min-vh-100 d-flex justify-content-center align-items-center">
     <form class="g-3 w-25" action="
         {% if is_edit %} 
-            {% url 'logs:log_file_edit' log_file_id=log_file_id %}
+            {% url 'logs:log_type_edit' log_type_id=log_type_id %}
         {% else %}
-            {% url 'logs:log_file_add' %}
+            {% url 'logs:log_type_add' %}
         {% endif %}" method="post">
 
         {% csrf_token %}
@@ -31,9 +31,9 @@
         <div class="col-12 text-center">
             <button type="submit" class="btn btn-outline-light col-12 mt-3">
                 {% if is_edit %}
-                    Измененить лог-файл
+                    Измененить тип протокола / ПО
                 {% else %}
-                    Добавить лог-файл
+                    Добавить тип прокотокола / ПО
                 {% endif %}
             </button>
         </div>

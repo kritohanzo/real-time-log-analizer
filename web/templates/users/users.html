@@ -4,7 +4,8 @@
 {% block content %}
 <div class="container mt-5 text-center">
     <h2 class="mb-4">Список пользователей</h2>
-    <table class="table">
+    <a class="col-4 btn btn-outline-light mx-1 mb-4" href="{% url 'auth:create' %}">Добавить пользователя</a>
+    <table class="table table-striped table-dark table-bordered border-white">
         <thead>
             <tr>
                 <th scope="col">ID</th>
@@ -26,9 +27,10 @@
                 <td>{{ user.surname }}</td>
                 <td>{{ user.patronymic }}</td>
                 <td>{{ user.email }}</td>
-                <td>{{ user.role }}</td>
+                <td>{{ user.get_role_display }}</td>
                 <td>
-                    <a class="col-4 btn btn-outline-light mx-1">Удалить</a> / <a class="col-4 btn btn-outline-light mx-1">Изменить</a>
+                    <a class="col-4 btn btn-sm btn-outline-light mx-1">Удалить</a>
+                    <a class="col-4 btn btn-sm btn-outline-light mx-1">Изменить</a>
                 </td>
             </tr>
             {% endfor %}

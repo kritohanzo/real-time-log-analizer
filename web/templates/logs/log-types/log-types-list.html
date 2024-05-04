@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %} Список добавленных типов протоколов / ПО {% endblock %}
+{% block header %} {% include 'includes/header.html' %} {% endblock %}
+{% block content %}
+<div class="container mt-5 text-center">
+    <h2 class="mb-4">Список добавленных типов протоколов / ПО</h2>
+    <a class="col-4 btn btn-outline-light mx-1 mb-4" href="{% url 'logs:log_type_add' %}">Добавить тип протокола / ПО</a>
+    <table class="table table-striped table-dark table-bordered border-white align-middle">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Описание</th>
+                <th scope="col">Поисковые паттерны</th>
+                <th scope="col">Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log_type in log_types %}
+            <tr>
+                <th scope="row" id="{{ log_type.id }}">{{ log_type.id }}</th>
+                <td>{{ log_type.name }}</td>
+                <td>
+                    {% if log_type.search_patterns.count %}
+                        {% for search_pattern in log_type.search_patterns.all %}
+                            <!-- <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_pattern_detail' search_pattern_id=search_pattern.id %}">{{ search_pattern }}</a> -->
+                            <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_patterns_list' %}#{{ search_pattern.id }}">{{ search_pattern }}</a>
+                        {% endfor %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_type_edit' log_type_id=log_type.id %}">Изменить</a>
+                    <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_type_delete' log_type_id=log_type.id %}">Удалить</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'includes/anchor_finder.html' %}
+{% endblock %}

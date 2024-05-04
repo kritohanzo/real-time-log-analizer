@@ -1,32 +1,35 @@
 {% extends 'base.html' %}
-{% block title %} Главная страница {% endblock %}
+{% block title %} Список добавленных поисковых паттернов {% endblock %}
 {% block header %} {% include 'includes/header.html' %} {% endblock %}
 {% block content %}
 <div class="container mt-5 text-center">
-    <h2 class="mb-4">Список лог-файлов</h2>
-    <a class="col-4 btn btn-outline-light mx-1 mb-4">Создать поисковый паттерн</a>
-    <table class="table">
+    <h2 class="mb-4">Список добавленных поисковых паттернов</h2>
+    <a class="col-4 btn btn-outline-light mx-1 mb-4" href="{% url 'logs:search_pattern_add' %}">Добавить поисковый паттерн</a>
+    <table class="table table-striped table-dark table-bordered border-white align-middle">
         <thead>
             <tr>
                 <th scope="col">ID</th>
+                <th scope="col">Описание</th>
                 <th scope="col">Паттерн</th>
-                <th scope="col">Тип протокола / ПО</th>
-                <th scope="col">Регулярное выражение</th>
+                <th scope="col">Тип поиска</th>
+                <th scope="col">Действие</th>
             </tr>
         </thead>
         <tbody>
             {% for search_pattern in search_patterns %}
             <tr>
-                <th scope="row">{{ search_pattern.id }}</th>
+                <th scope="row" id="{{ search_pattern.id }}">{{ search_pattern.id }}</th>
+                <td>{{ search_pattern.name }}</td>
                 <td>{{ search_pattern.pattern }}</td>
-                <td>{{ search_pattern.type }}</td>
-                <td>{{ search_pattern.regex }}</td>
+                <td>{{ search_pattern.get_search_type_display }}</td>
                 <td>
-                    <a class="col-4 btn btn-outline-light mx-1">Удалить</a> / <a class="col-4 btn btn-outline-light mx-1">Изменить</a>
+                    <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_pattern_edit' search_pattern_id=search_pattern.id %}">Изменить</a>
+                    <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_pattern_delete' search_pattern_id=search_pattern.id %}">Удалить</a>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+{% include 'includes/anchor_finder.html' %}
 {% endblock %}

@@ -2,9 +2,9 @@
 
 {% block title %}
 {% if is_edit %}
-    Изменение лог-файла
+    Изменение поискового паттерна
 {% else %}
-    Добавление лог-файла
+    Добавление поискового паттерна
 {% endif %}
 {% endblock %}
 
@@ -14,9 +14,9 @@
 <div class="min-vh-100 d-flex justify-content-center align-items-center">
     <form class="g-3 w-25" action="
         {% if is_edit %} 
-            {% url 'logs:log_file_edit' log_file_id=log_file_id %}
+            {% url 'logs:search_pattern_edit' search_pattern_id=search_pattern_id %}
         {% else %}
-            {% url 'logs:log_file_add' %}
+            {% url 'logs:search_pattern_add' %}
         {% endif %}" method="post">
 
         {% csrf_token %}
@@ -31,9 +31,9 @@
         <div class="col-12 text-center">
             <button type="submit" class="btn btn-outline-light col-12 mt-3">
                 {% if is_edit %}
-                    Измененить лог-файл
+                    Измененить поисковый паттерн
                 {% else %}
-                    Добавить лог-файл
+                    Добавить поисковый паттерн
                 {% endif %}
             </button>
         </div>
