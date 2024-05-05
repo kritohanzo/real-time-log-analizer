@@ -24,14 +24,14 @@
                 <td>
                     {% if log_file.type %}
                         <!-- <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_type_detail' log_type_id=log_file.type.id %}">{{ log_file.type }}</a> -->
-                        <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_types_list'%}#{{ log_file.type.id }}">{{ log_file.type }}</a>
+                        <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_types_list'%}#{{ log_file.type.id }}">{{ log_file.type }}</a>
                     {% else %}
                         —
                     {% endif %}
                 </td>
                 <td>
-                    <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_file_edit' log_file_id=log_file.id %}">Изменить</a>
-                    <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_file_delete' log_file_id=log_file.id %}">Удалить</a>
+                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_file_edit' log_file_id=log_file.id %}">Изменить</a>
+                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_file_delete' log_file_id=log_file.id %}">Удалить</a>
                 </td>
             </tr>
             {% endfor %}

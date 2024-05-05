@@ -2,12 +2,46 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView
 from django import views
 import datetime
-from logs.forms import LogFileForm, LogTypeForm, SearchPatternForm
-from logs.models import LogFile, LogType, SearchPattern
+from logs.forms import LogFileForm, LogTypeForm, SearchPatternForm, DateRangeForm
+from logs.models import LogFile, LogType, SearchPattern, AnomalousEvent
+from qsstats import QuerySetStats
+from django.db.models import Count, F, QuerySet
 
 
-class MainPageView(TemplateView):
-    template_name = "logs/index.html"
+class MainPageView(views.View):
+    def get(self, request, *args, **kwargs):
+        form = DateRangeForm()
+        start_date = datetime.datetime.now().date()
+        end_date = start_date + datetime.timedelta(days=1)
+        anomalous_events = AnomalousEvent.objects.filter(datetime__gt=start_date, datetime__lt=end_date)
+        qsstats = QuerySetStats(anomalous_events, date_field='datetime')
+        logs_metrics = qsstats.time_series(start_date, end_date, interval='minutes')
+        logs_metrics = list(filter(lambda x: x[1] > 0 or x[0].minute % 30 == 0, logs_metrics))
+        return render(request, template_name="logs/index.html", context={"form": form, "logs_metrics": logs_metrics, "start_date": start_date, "end_date": end_date})
+    
+    def post(self, request, *args, **kwargs):
+        form = DateRangeForm(request.POST)
+        if not form.is_valid():
+            return self.get(self, request, *args, **kwargs)
+        start_date = form.cleaned_data.get("start_date")
+        end_date = form.cleaned_data.get("end_date")
+        anomalous_events = AnomalousEvent.objects.filter(datetime__gt=start_date, datetime__lt=end_date)
+        log_file = form.cleaned_data.get("log_file")
+        if log_file:
+            anomalous_events = anomalous_events.filter(log_file=log_file)
+        log_type = form.cleaned_data.get("log_type")
+        if log_type:
+            anomalous_events = anomalous_events.filter(log_file__type=log_type)
+        search_pattern = form.cleaned_data.get("search_pattern")
+        if search_pattern:
+            log_types = search_pattern.log_types.all() 
+            if log_types:
+                anomalous_events = anomalous_events.filter(log_file__type__in=log_types)
+        
+        qsstats = QuerySetStats(anomalous_events, date_field='datetime')
+        logs_metrics = qsstats.time_series(start_date, end_date, interval='minutes')
+        logs_metrics = list(filter(lambda x: x[1] > 0 or x[0].minute % 30 == 0, logs_metrics))
+        return render(request, template_name="logs/index.html", context={"form": form, "logs_metrics": logs_metrics, "start_date": start_date, "end_date": end_date})
 
 
 # Log File Views
@@ -16,6 +50,8 @@ class MainPageView(TemplateView):
 class LogFileListView(views.View):
     def get(self, request, *args, **kwargs):
         log_files = LogFile.objects.all()
+        from random import randint
+        AnomalousEvent.objects.create(text="Кто-то чекает файлики", log_file=log_files[randint(0, len(log_files)-1)])
         return render(request, template_name="logs/log-files/log-files-list.html", context={"log_files": log_files})
 
 

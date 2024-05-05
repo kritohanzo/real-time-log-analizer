@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from users.models import User, RoleChoices
 from logs.models import LogType, LogFile, SearchPattern, SearchPatternTypeChoices
-
+import datetime
 
 class LogFileForm(forms.ModelForm):
     name = forms.CharField(
@@ -28,7 +28,7 @@ class LogFileForm(forms.ModelForm):
         widget=forms.Select(
             attrs={"class": "form-control"}
         ),
-        empty_label="Выберите тип протокола / ПО"
+        empty_label="—"
     )
     
     class Meta:
@@ -87,3 +87,55 @@ class SearchPatternForm(forms.ModelForm):
     class Meta:
         model = SearchPattern
         fields = ("name", "pattern", "search_type")
+
+
+class DateRangeForm(forms.Form):
+    start_date = forms.DateTimeField(
+        label="Начало периода",
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Выберите начала периода",
+                "class": "form-control",
+                "type": "datetime-local",
+                "value": datetime.datetime.now().strftime('%Y-%m-%d 00:00')}
+        ),
+    )
+    end_date = forms.DateTimeField(
+        label="Конец периода",
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Выберите начала периода",
+                "class": "form-control",
+                "type": "datetime-local",
+                "value": (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00')}
+        ),
+    )
+    log_file = forms.ModelChoiceField(
+        queryset=LogFile.objects.all(),
+        required=False,
+        label="Лог-файл",
+        widget=forms.Select(
+            attrs={"class": "form-control"}
+        ),
+        empty_label="Любой"
+    )
+    log_type = forms.ModelChoiceField(
+        queryset=LogType.objects.all(),
+        required=False,
+        label="Тип протокола / ПО",
+        widget=forms.Select(
+            attrs={"class": "form-control"}
+        ),
+        empty_label="Любой"
+    )
+    search_pattern = forms.ModelChoiceField(
+        queryset=SearchPattern.objects.all(),
+        required=False,
+        label="Поисковый паттерн",
+        widget=forms.Select(
+            attrs={"class": "form-control"}
+        ),
+        empty_label="Любой"
+    )

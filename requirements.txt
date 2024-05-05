@@ -10,4 +10,6 @@ redis==5.0.1
 flower==2.0.1
 psycopg2-binary==2.9.9
 gunicorn==20.1.0
+django-google-charts==0.1.1
+django-qsstats-magic==1.1.0
 # psycopg2==2.9.9

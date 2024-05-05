@@ -23,15 +23,15 @@
                     {% if log_type.search_patterns.count %}
                         {% for search_pattern in log_type.search_patterns.all %}
                             <!-- <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_pattern_detail' search_pattern_id=search_pattern.id %}">{{ search_pattern }}</a> -->
-                            <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_patterns_list' %}#{{ search_pattern.id }}">{{ search_pattern }}</a>
+                            <a class="col-10 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_patterns_list' %}#{{ search_pattern.id }}">{{ search_pattern }}</a>
                         {% endfor %}
                     {% else %}
                         —
                     {% endif %}
                 </td>
                 <td>
-                    <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_type_edit' log_type_id=log_type.id %}">Изменить</a>
-                    <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_type_delete' log_type_id=log_type.id %}">Удалить</a>
+                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_type_edit' log_type_id=log_type.id %}">Изменить</a>
+                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_type_delete' log_type_id=log_type.id %}">Удалить</a>
                 </td>
             </tr>
             {% endfor %}

@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "logs.apps.LogsConfig",
     "core.apps.CoreConfig",
+    "googlecharts",
 ]
 
 MIDDLEWARE = [
@@ -114,7 +115,6 @@ LOGOUT_URL = "auth:logout"
 WSGI_APPLICATION = "main.wsgi.application"
 ASGI_APPLICATION = 'main.asgi.application'
 
-CHANNEL_REDIS_BROKER_URL = 'redis://redis/1'
 if DEBUG:
     CHANNEL_LAYERS = {
         "default": {
@@ -122,6 +122,7 @@ if DEBUG:
         }
     }
 else:
+    CHANNEL_REDIS_BROKER_URL = 'redis://redis/1'
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',

@@ -23,8 +23,8 @@
                 <td>{{ search_pattern.pattern }}</td>
                 <td>{{ search_pattern.get_search_type_display }}</td>
                 <td>
-                    <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_pattern_edit' search_pattern_id=search_pattern.id %}">Изменить</a>
-                    <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_pattern_delete' search_pattern_id=search_pattern.id %}">Удалить</a>
+                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_edit' search_pattern_id=search_pattern.id %}">Изменить</a>
+                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_delete' search_pattern_id=search_pattern.id %}">Удалить</a>
                 </td>
             </tr>
             {% endfor %}
