@@ -4,39 +4,35 @@
 {% block header %} {% include 'includes/header.html' %} {% endblock %}
 {% block content %}
 
-<div class="m-3 d-flex justify-content-between align-items-top">
+<div class="d-flex justify-content-between align-items-top">
 
-    <div>
-        {% load googlecharts %}
-        <div id="logs_graph"></div>
-        
-        {% googlecharts %}
-            {% data logs_metrics "logs_data" %}
-                {% col "string" "Время аномального события" %}
-                    "{{ val }}"
-                {% endcol %}
-                {% col "number" "Количество аномальных событий" %}
-                    {{ val }}
-                {% endcol %}
-            {% enddata %}
-        
-            {% options "logs_options" %}
-                kind: "LineChart",
-                options: {
-                    backgroundColor: "#e8e8e8",
-                    colors: ["#ff001a"],
-                    legend: { position: 'bottom' },
-                    title: "Количество аномальных событий период с {{ start_date }} по {{ end_date }}",
-                    width: 1400,
-                    height: 860
-                }
-            {% endoptions %}
-        
-            {% graph "logs_graph" "logs_data" "logs_options" %} 
-        {% endgooglecharts %}
-    </div>
+    {% load googlecharts %}
+    <div class="w-75 m-3" id="logs_graph"></div>
+    
+    {% googlecharts %}
+        {% data logs_metrics "logs_data" %}
+            {% col "string" "Время аномального события" %}
+                "{{ val }}"
+            {% endcol %}
+            {% col "number" "Количество аномальных событий" %}
+                {{ val }}
+            {% endcol %}
+        {% enddata %}
+    
+        {% options "logs_options" %}
+            kind: "LineChart",
+            options: {
+                backgroundColor: "#e8e8e8",
+                colors: ["#ff001a"],
+                legend: { position: 'bottom' },
+                title: "Количество аномальных событий период с {{ start_date }} по {{ end_date }}",
+            }
+        {% endoptions %}
+    
+        {% graph "logs_graph" "logs_data" "logs_options" %} 
+    {% endgooglecharts %}
 
-    <form class="g-3 w-25" action="{% url 'logs:main_page' %}" method="post">
+    <form class="w-25 m-3 g-3" action="{% url 'logs:main_page' %}" method="post">
         {% csrf_token %}
         {% for field in form %}
         <div class="col-12 mb-2">

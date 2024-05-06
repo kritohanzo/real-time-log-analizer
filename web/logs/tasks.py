@@ -1,5 +1,6 @@
 from celery import shared_task
-from logs.models import LogFile, AnomalousLogEvent
+from logs.models import LogFile, AnomalousEvent
+import os
 
 PATTERN = "auth error"
 
@@ -26,7 +27,7 @@ def analyze_log_lines(log_file_id: int, lines: list[str]) -> None:
     for line in prepared_lines:
         if PATTERN in line:
             log_file = LogFile.objects.get(id=log_file_id)
-            AnomalousLogEvent.objects.create(text=line, log_file=log_file)
+            AnomalousEvent.objects.create(text=line, log_file=log_file)
 
 @shared_task
 def read_log_file_task() -> None:
@@ -38,7 +39,7 @@ def read_log_file_task() -> None:
     """
     log_files = LogFile.objects.all()
     for log_file in log_files:
-        with open("H://Dev//real-time-log-analizer//log_files_test//" + log_file.path, mode="r") as file:
+        with open(os.path.join("/outer/", log_file.path), mode="r") as file:
             if not log_file.last_positions:
                 file.seek(0, 2)
             else:
