@@ -1,31 +1,30 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %} Главная страница {% endblock %}
+{% block title %} Аномальные события {% endblock %}
 {% block header %} {% include 'includes/header.html' %} {% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-top">
-    <div class="w-75 m-3" id="logs_graph"></div>
+<div class="container mt-5 text-center">
     
+    <h2 class="mb-3">Список аномальных событий в лог-файлах</h2>
+    <div class="d-flex justify-content-center">
+        <form class="col-3 mb-3 g-3" action="{% url 'logs:anomalous_events_list' %}" method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="col-12 mb-2">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    <div>{{ field }}</div>
+                </div>
+            {% endfor %}
 
-    <form class="w-25 m-3 g-3" action="{% url 'logs:main_page' %}" method="post">
-        {% csrf_token %}
-        {% for field in form %}
-        <div class="col-12 mb-2">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            <div>{{ field }}</div>
-        </div>
-        {% endfor %}
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-outline-light col-12 mt-2">
+                    Поиск
+                </button>
+            </div>
+        </form>
+    </div>
 
-        <div class="col-12 text-center">
-            <button type="submit" class="btn btn-outline-light col-12 mt-2">
-                Поиск
-            </button>
-        </div>
-    </form>
-</div>
-
-<div class="d-flex justify-content-start mx-3 my-2">
-    <table class="table table-striped table-dark table-bordered border-white align-middle text-center">
+    <table class="table table-striped table-dark table-bordered border-white align-middle col-12">
         <thead>
             <tr>
                 <th scope="col">ID</th>
@@ -60,99 +59,8 @@
         </tbody>
     </table>
 </div>
-
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript">
-    var dirtyLogsMetrics = {{ logs_metrics|safe }};
-    var newMetric = null;
-    var cleanedLogsMetrics = null;
-    google.charts.load('current', {'packages':['corechart']});
-    google.charts.setOnLoadCallback(drawChart);
-
-    function cleanDatetime(el) {
-        var timeOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        var cleanedDatetime = new Date(el[0]);
-        return [cleanedDatetime, el[1]];
-    }
-    
-    function concatMetrics(array1, array2) {
-        var found = false;
-        var count = 0;
-        for (var el in array1) {
-            if (array1[count][0].toString() == array2[0][0].toString()) {
-                array1[count][1] = array1[count][1] + array2[0][1];
-                found = true;
-                break;
-            }
-            count++;
-        }
-        if (!found) {
-            array1.push(array2[0]);
-        }
-
-        return array1;
-    }
-
-
-    function drawChart() {
-        
-        if (newMetric) {
-            cleanedNewMetric = newMetric.map(cleanDatetime);
-            cleanedLogsMetrics = concatMetrics(cleanedLogsMetrics, cleanedNewMetric).sort();
-        } else {
-            cleanedLogsMetrics = dirtyLogsMetrics.map(cleanDatetime);
-        }
-        var data = new google.visualization.DataTable();
-        data.addColumn('datetime', 'Дата и время');
-        data.addColumn('number', 'Количество аномальных событий');
-        data.addRows(cleanedLogsMetrics);
-
-        var options = {
-            curveType: 'function',
-            chartArea: {
-                left: '5%',
-                top: '10%',
-                width: '92.5%',
-                height: '80%'
-            },
-            title: 'Количество аномальных событий период с {{ start_datetime }} по {{ end_datetime }}',
-            legend: {
-                position: 'bottom'
-            },
-            pointSize: 2,
-            fontSize: 16,
-            hAxis: {
-                format: 'HH:mm',
-                gridlines: {
-                    count: -1
-                },
-                textPosition: 'out',
-                textStyle: {
-                    fontSize: 12,
-                    bold: true
-                }
-
-            },
-            vAxis: {
-                format: "#",
-                viewWindow: {
-                    min: 0
-                },
-                textPosition: 'out',
-                textStyle: {
-                    fontSize: 16,
-                    bold: true
-                }
-            },
-        };
-
-        var chart = new google.visualization.LineChart(document.getElementById('logs_graph'));
-
-        chart.draw(data, options);
-    }
-</script>
+{% include 'includes/anchor_finder.html' %}
 {% endblock %}
-
 {% block websocket_notificator %}
     <audio id="notificationSound" preload="auto" src="{% static 'audio/notification.mp3' %}"></audio>
     <div id="notificationContainer" class="position-fixed bottom-0 end-0 p-3" style="display: none;">
@@ -185,9 +93,6 @@
                 );
 
                 var tableRows = $('.table tbody tr');
-                if (tableRows.length > 6) { 
-                    tableRows.last().remove();
-                }
                 
                 var timeOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
 
@@ -208,9 +113,6 @@
                 $('.table tbody tr').first().append("<td><a class='col-10 btn btn-sm btn-outline-light mx-1' href='{% url 'logs:log_files_list'%}#" + data.log_file.id + "'>" + data.log_file.name + "</a></td>");
                 $('.table tbody tr').first().append("<td><a class='col-6 btn btn-sm btn-outline-light m-1' href='/logs/anomalous-events/" + data.id + "/delete'>Удалить</a></td>");
                 $('.table tbody').prepend('</tr>');
-
-                newMetric = data.new_log_metric;
-                drawChart();
             } catch (e) {
                 console.log('Error:', e.message);
             }

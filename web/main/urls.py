@@ -7,5 +7,5 @@ from django.contrib.auth.decorators import login_required
 urlpatterns = [
     path("auth/", include("users.urls")),
     path("logs/", include("logs.urls")),
-    path("", RedirectView.as_view(url="logs/"))
+    path("", RedirectView.as_view(url="logs/")),
 ]

@@ -1,0 +1,39 @@
+{% load static %}
+<audio id="notificationSound" preload="auto" src="{% static 'audio/notification.mp3' %}"></audio>
+<div id="notificationContainer" class="position-fixed bottom-0 end-0 p-3" style="display: none;">
+    <div class="card" id="notificationWrapper" style="max-width: 470px;">
+        <div class="card-header bg-danger text-dark d-flex justify-content-between">
+            <strong>Уведомление</strong>
+            <button type="button" class="btn-close"></button>
+        </div>
+        <div class="card-body text-dark">
+            <!-- websocket message  -->
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    const socket = new WebSocket('ws://127.0.0.1:8000/ws');
+    const notificationSound = document.getElementById('notificationSound');
+
+    socket.onmessage = function (event) {
+        try {
+            var data = JSON.parse(event.data);
+
+            $('#notificationContainer').show();
+            notificationSound.play();
+            setTimeout(function () {
+                $('#notificationContainer').hide();
+            }, 10000);
+            $('#notificationWrapper .card-body').text(
+                "[" + data.id + "] В лог-файле " + data.log_file.name + " произошло новое событие: " + data.text
+            );
+        } catch (e) {
+            console.log('Error:', e.message);
+        }
+    };
+
+    $('.btn-close').click(function () {
+        $('#notificationContainer').hide();
+    });
+</script>

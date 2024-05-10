@@ -101,9 +101,13 @@ class AnomalousEvent(models.Model):
     text = models.CharField(
         verbose_name="Текст", max_length=255
     )
-    datetime = models.DateTimeField(
-        verbose_name="Дата и время", auto_now_add=True
+    fact_datetime = models.DateTimeField(
+        verbose_name="Фактическое дата и время", null=True, blank=True
     )
+    detected_datetime = models.DateTimeField(
+        verbose_name="Дата и время обнаружения", auto_now_add=True
+    )
+    
     log_file = models.ForeignKey(
         LogFile,
         on_delete=models.SET_NULL,
@@ -114,7 +118,7 @@ class AnomalousEvent(models.Model):
     class Meta:
         verbose_name_plural = "Аномальные события лог-файла"
         verbose_name = "Аномальное событие лог-файла"
-        ordering = ("datetime",)
+        ordering = ("-id",)
 
     def __str__(self):
         return self.text

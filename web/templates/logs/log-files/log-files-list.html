@@ -23,7 +23,6 @@
                 <td>{{ log_file.path }}</td>
                 <td>
                     {% if log_file.type %}
-                        <!-- <a class="col-4 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_type_detail' log_type_id=log_file.type.id %}">{{ log_file.type }}</a> -->
                         <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_types_list'%}#{{ log_file.type.id }}">{{ log_file.type }}</a>
                     {% else %}
                         —

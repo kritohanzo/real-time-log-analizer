@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from users.models import User, RoleChoices
-from logs.models import LogType, LogFile, SearchPattern, SearchPatternTypeChoices
+from logs.models import LogType, LogFile, SearchPattern, SearchPatternTypeChoices, AnomalousEvent
 import datetime
 
 class LogFileForm(forms.ModelForm):
@@ -48,6 +48,7 @@ class LogTypeForm(forms.ModelForm):
     search_patterns = forms.ModelMultipleChoiceField(
         queryset=SearchPattern.objects.all(),
         label="Поиксовые паттерны",
+        required=False,
         widget=forms.CheckboxSelectMultiple(
             attrs={"class": "form-check form-check-inline"}
         ),
@@ -89,8 +90,8 @@ class SearchPatternForm(forms.ModelForm):
         fields = ("name", "pattern", "search_type")
 
 
-class DateRangeForm(forms.Form):
-    start_date = forms.DateTimeField(
+class MainPageForm(forms.Form):
+    start_datetime = forms.DateTimeField(
         label="Начало периода",
         required=True,
         widget=forms.TextInput(
@@ -101,7 +102,7 @@ class DateRangeForm(forms.Form):
                 "value": datetime.datetime.now().strftime('%Y-%m-%d 00:00')}
         ),
     )
-    end_date = forms.DateTimeField(
+    end_datetime = forms.DateTimeField(
         label="Конец периода",
         required=True,
         widget=forms.TextInput(
@@ -134,6 +135,50 @@ class DateRangeForm(forms.Form):
         queryset=SearchPattern.objects.all(),
         required=False,
         label="Поисковый паттерн",
+        widget=forms.Select(
+            attrs={"class": "form-control"}
+        ),
+        empty_label="Любой"
+    )
+
+
+class AnomalousEventSearchForm(forms.Form):
+    text = forms.CharField(
+        label="Текст события",
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Введите текст события", "class": "form-control"}
+        ),
+    )
+    start_datetime = forms.DateTimeField(
+        label="Начало периода",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Выберите начала периода",
+                "class": "form-control",
+                "type": "datetime-local",
+                "value": "—"
+            }
+        ),
+    )
+    end_datetime = forms.DateTimeField(
+        label="Конец периода",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Выберите начала периода",
+                "class": "form-control",
+                "type": "datetime-local",
+                "value": "—"
+            }
+        ),
+    )
+    log_file = forms.ModelChoiceField(
+        queryset=LogFile.objects.all(),
+        required=False,
+        label="Лог-файл",
         widget=forms.Select(
             attrs={"class": "form-control"}
         ),

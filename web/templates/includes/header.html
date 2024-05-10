@@ -3,6 +3,7 @@
         <div class="col-6 d-flex justify-content-start">
             {% if request.user.is_authenticated %}
                 <a class="col-0.5 btn btn-outline-light mx-1" href="{% url 'logs:main_page' %}">«</i></a>
+                <a class="col-4 btn btn-outline-light mx-1" href="{% url 'logs:anomalous_events_list' %}">Аномальные события</a>
                 <a class="col-4 btn btn-outline-light mx-1" href="{% url 'logs:log_files_list' %}">Лог-файлы</a>
                 <a class="col-4 btn btn-outline-light mx-1" href="{% url 'logs:log_types_list' %}">Типы протоколов / ПО</a>
                 <a class="col-4 btn btn-outline-light mx-1" href="{% url 'logs:search_patterns_list' %}">Поисковые паттерны</a>

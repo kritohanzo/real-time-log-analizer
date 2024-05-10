@@ -18,6 +18,9 @@
     </header>
     <content>
         {% block content %} NO CONTENT {% endblock %}
+        {% block websocket_notificator %}
+            {% include 'includes/websocket-notificator.html' %}
+        {% endblock %}
     </content>
 </body>
 
