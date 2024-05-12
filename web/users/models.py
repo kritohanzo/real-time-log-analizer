@@ -38,24 +38,25 @@ class User(AbstractBaseUser):
     username_validator = UnicodeUsernameValidator()
 
     username = models.CharField(
-        verbose_name="Логин пользователя",
+        verbose_name="Логин",
         max_length=64,
         unique=True,
         validators=[username_validator],
     )
     name = models.CharField(
-        verbose_name="Имя пользователя", max_length=64, blank=True
+        verbose_name="Имя", max_length=64, null=True, blank=True
     )
     surname = models.CharField(
-        verbose_name="Фамилия пользователя", max_length=64, blank=True
+        verbose_name="Фамилия", max_length=64, null=True, blank=True
     )
     patronymic = models.CharField(
-        verbose_name="Отчество пользователя", max_length=64, blank=True
+        verbose_name="Отчество", max_length=64, null=True, blank=True
     )
     email = models.EmailField(
-        verbose_name="Электронная почта пользователя",
-        max_length=64,
-        blank=True,
+        verbose_name="Электронная почта", max_length=64, null=True, blank=True,
+    )
+    phone_number = models.CharField(
+        verbose_name="Номер телефона", max_length=12, blank=True
     )
     role = models.CharField(
         verbose_name="Роль пользователя",

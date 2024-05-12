@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from logs.views import MainPageView, LogFileListView, LogFileAddView, LogFileDetailView, LogFileEditView, LogFileDeleteView, LogTypeListView, LogTypeAddView, LogTypeDetailView, LogTypeEditView, LogTypeDeleteView, SearchPatternListView, SearchPatternAddView, SearchPatternDetailView, SearchPatternEditView, SearchPatternDeleteView, AnomalousEventListView, AnomalousEventDeleteView
+from logs.views import MainPageView, LogFileListView, LogFileAddView, LogFileEditView, LogFileDeleteView, LogTypeListView, LogTypeAddView, LogTypeEditView, LogTypeDeleteView, SearchPatternListView, SearchPatternAddView, SearchPatternEditView, SearchPatternDeleteView, AnomalousEventListView, AnomalousEventDeleteView, OneTimeScanListView, OneTimeScanAddView, OneTimeScanDeleteView, OneTimeScanAnomalousEventListView
 from django.contrib.auth.decorators import login_required
 
 app_name = "logs"
@@ -23,6 +23,11 @@ urlpatterns = [
     path("search-patterns/add", login_required(SearchPatternAddView.as_view()), name="search_pattern_add"),
     path("search-patterns/<int:search_pattern_id>/edit", login_required(SearchPatternEditView.as_view()), name="search_pattern_edit"),
     path("search-patterns/<int:search_pattern_id>/delete", login_required(SearchPatternDeleteView.as_view()), name="search_pattern_delete"),
+
+    path("one-time-scans/", login_required(OneTimeScanListView.as_view()), name="one_time_scans_list"),
+    path("one-time-scans/add", login_required(OneTimeScanAddView.as_view()), name="one_time_scan_add"),
+    path("one-time-scans/<int:log_file_id>/delete", login_required(OneTimeScanDeleteView.as_view()), name="one_time_scan_delete"),
+    path("one-time-scans/<int:log_file_id>/anomalous-events", login_required(OneTimeScanAnomalousEventListView.as_view()), name="one_time_scan_anomalous_events_list"),
 
     path("", login_required(MainPageView.as_view()), name="main_page")
 ]

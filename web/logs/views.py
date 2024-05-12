@@ -2,8 +2,9 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView
 from django import views
 import datetime
-from logs.forms import LogFileForm, LogTypeForm, SearchPatternForm, MainPageForm, AnomalousEventSearchForm
+from logs.forms import LogFileForm, LogTypeForm, SearchPatternForm, AnomalousEventSearchForm, OneTimeScanAnomalousEventSearchForm
 from logs.models import LogFile, LogType, SearchPattern, AnomalousEvent
+from logs.tasks import read_log_file_task
 from qsstats import QuerySetStats
 from django.utils.timezone import get_current_timezone
 import json
@@ -14,23 +15,24 @@ import pytz
 
 class MainPageView(views.View):
     def get(self, request, *args, **kwargs):
-        form = MainPageForm()
+        form = AnomalousEventSearchForm()
         start_datetime = datetime.datetime.now(tz=ZoneInfo(key='Asia/Yekaterinburg')).replace(hour=0, minute=0, second=0, microsecond=0)
         end_datetime = start_datetime + datetime.timedelta(days=1)
-        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime)
+        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False)
         qsstats = QuerySetStats(anomalous_events, date_field='detected_datetime')
         logs_metrics = qsstats.time_series(start_datetime, end_datetime, interval='minutes')
         logs_metrics = list(filter(lambda x: x[1] > 0 or x[0].minute % 30 == 0, logs_metrics))
         logs_metrics = [[str(i[0]), i[1]] for i in logs_metrics]
-        return render(request, template_name="logs/index.html", context={"form": form, "logs_metrics": json.dumps(logs_metrics), "start_datetime": start_datetime, "end_datetime": end_datetime, "anomalous_events": anomalous_events[:7]})
+        return render(request, template_name="logs/index.html", context={"form": form, "logs_metrics": json.dumps(logs_metrics), "start_datetime": start_datetime, "end_datetime": end_datetime, "anomalous_events": anomalous_events[:6]})
     
     def post(self, request, *args, **kwargs):
-        form = MainPageForm(request.POST)
+        form = AnomalousEventSearchForm(request.POST)
         if not form.is_valid():
             return self.get(self, request, *args, **kwargs)
-        start_datetime, end_datetime, log_file, log_type, search_pattern = form.cleaned_data.values()
-        print(form.cleaned_data)
-        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime)
+        text, start_datetime, end_datetime, log_file, log_type, search_pattern = form.cleaned_data.values()
+        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False)
+        if text:
+            anomalous_events = anomalous_events.filter(text__contains=text)
         if log_file:
             anomalous_events = anomalous_events.filter(log_file=log_file)
         if log_type:
@@ -43,7 +45,7 @@ class MainPageView(views.View):
         logs_metrics = qsstats.time_series(start_datetime, end_datetime, interval='minutes')
         logs_metrics = list(filter(lambda x: x[1] > 0 or x[0].minute % 30 == 0, logs_metrics))
         logs_metrics = [[str(i[0]), i[1]] for i in logs_metrics]
-        return render(request, template_name="logs/index.html", context={"form": form, "logs_metrics": json.dumps(logs_metrics), "start_datetime": start_datetime, "end_datetime": end_datetime, "anomalous_events": anomalous_events[:7]})
+        return render(request, template_name="logs/index.html", context={"form": form, "logs_metrics": json.dumps(logs_metrics), "start_datetime": start_datetime, "end_datetime": end_datetime, "anomalous_events": anomalous_events[:6]})
 
 
 # Anomalous Event Views
@@ -51,28 +53,28 @@ class MainPageView(views.View):
 
 class AnomalousEventListView(views.View):
     def get(self, request, *args, **kwargs):
-        anomalous_events = AnomalousEvent.objects.all()
+        anomalous_events = AnomalousEvent.objects.filter(log_file__one_time_scan=False)
         form = AnomalousEventSearchForm()
         return render(request, template_name="logs/anomalous-events/anomalous-events-list.html", context={"anomalous_events": anomalous_events, "form": form})
 
     def post(self, request, *args, **kwargs):
         form = AnomalousEventSearchForm(request.POST)
-        anomalous_events = AnomalousEvent.objects.all()
+        anomalous_events = AnomalousEvent.objects.filter(log_file__one_time_scan=False)
         if not form.is_valid():
             return self.get(self, request, *args, **kwargs)
-        text, start_datetime, end_datetime, log_file = form.cleaned_data.values()
+        text, start_datetime, end_datetime, log_file, log_type, search_pattern = form.cleaned_data.values()
+        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False)
         if text:
             anomalous_events = anomalous_events.filter(text__contains=text)
-        if start_datetime:
-                anomalous_events = anomalous_events.filter(detected_datetime__gt=start_datetime)
-        if end_datetime:
-            anomalous_events = anomalous_events.filter(detected_datetime__lt=end_datetime)
         if log_file:
             anomalous_events = anomalous_events.filter(log_file=log_file)
+        if log_type:
+            anomalous_events = anomalous_events.filter(log_file__type=log_type)
+        if search_pattern:
+            log_types = search_pattern.log_types.all() 
+            if log_types:
+                anomalous_events = anomalous_events.filter(log_file__type__in=log_types)
         return render(request, template_name="logs/anomalous-events/anomalous-events-list.html", context={"anomalous_events": anomalous_events, "form": form})
-
-
-
 
 
 class AnomalousEventDeleteView(views.View):
@@ -87,10 +89,11 @@ class AnomalousEventDeleteView(views.View):
 
 class LogFileListView(views.View):
     def get(self, request, *args, **kwargs):
-        log_files = LogFile.objects.all()
-        from random import randint
-        texts = ["Я ВЗЛОМАЛ ВАС АХАХАХА", "КРАСНОЯРСК ГАВНО", "ПРОСТО ТЕСТОВАЯ СТРОЧКА =(", "ВЛАД С ДНЁМ РОЖДЕНИЯ!!!!"]
-        AnomalousEvent.objects.create(text=texts[randint(0, len(texts)-1)], log_file=log_files[randint(0, len(log_files)-1)])
+        log_files = LogFile.objects.filter(one_time_scan=False)
+        if log_files:
+            from random import randint
+            texts = ["Я ВЗЛОМАЛ ВАС АХАХАХА", "КРАСНОЯРСК ГАВНО", "ПРОСТО ТЕСТОВАЯ СТРОЧКА =(", "ВЛАД С ДНЁМ РОЖДЕНИЯ!!!!"]
+            AnomalousEvent.objects.create(text=texts[randint(0, len(texts)-1)], log_file=log_files[randint(0, len(log_files)-1)])
         return render(request, template_name="logs/log-files/log-files-list.html", context={"log_files": log_files})
 
 
@@ -103,14 +106,14 @@ class LogFileAddView(views.View):
         form = LogFileForm(request.POST)
         if not form.is_valid():
             return render(request, template_name="logs/log-files/log-file-form.html", context={"form": form})
-        LogFile.objects.create(**form.cleaned_data)
+        LogFile.objects.create(**form.cleaned_data, one_time_scan=False)
         return render(request, template_name="success.html", context={"message": "Вы успеншо добавили лог-файл"})
 
 
-class LogFileDetailView(views.View):
-    def get(self, request, log_file_id, *args, **kwargs):
-        log_file = get_object_or_404(LogFile, id=log_file_id)
-        return render(request, template_name="logs/log-files/log-files-list.html", context={"log_file": log_file})
+# class LogFileDetailView(views.View):
+#     def get(self, request, log_file_id, *args, **kwargs):
+#         log_file = get_object_or_404(LogFile, id=log_file_id)
+#         return render(request, template_name="logs/log-files/log-files-list.html", context={"log_file": log_file})
 
 
 class LogFileEditView(views.View):
@@ -159,10 +162,10 @@ class LogTypeAddView(views.View):
         return render(request, template_name="success.html", context={"message": "Вы успешно добавили протокол / ПО"})
 
 
-class LogTypeDetailView(views.View):
-    def get(self, request, log_type_id, *args, **kwargs):
-        log_type = get_object_or_404(LogType, id=log_type_id)
-        return render(request, template_name="logs/log-types/log-type-detail.html", context={"log_type": log_type})
+# class LogTypeDetailView(views.View):
+#     def get(self, request, log_type_id, *args, **kwargs):
+#         log_type = get_object_or_404(LogType, id=log_type_id)
+#         return render(request, template_name="logs/log-types/log-type-detail.html", context={"log_type": log_type})
 
 
 class LogTypeEditView(views.View):
@@ -186,7 +189,7 @@ class LogTypeDeleteView(views.View):
     def get(self, request, log_type_id, *args, **kwargs):
         log_type = get_object_or_404(LogType, id=log_type_id)
         log_type.delete()
-        return render(request, template_name="success.html", context={"message": "Вы успеншо удалили протокол / ПО"})
+        return render(request, template_name="success.html", context={"message": "Вы успешно удалили протокол / ПО"})
     
 
 # Search Patterns Views
@@ -211,10 +214,10 @@ class SearchPatternAddView(views.View):
         return render(request, template_name="success.html", context={"message": "Вы успешно добавили поисковый паттерн"})
 
 
-class SearchPatternDetailView(views.View):
-    def get(self, request, search_pattern_id, *args, **kwargs):
-        search_pattern = get_object_or_404(SearchPattern, id=search_pattern_id)
-        return render(request, template_name="logs/search-patterns/search-pattern-detail.html", context={"search_pattern": search_pattern})
+# class SearchPatternDetailView(views.View):
+#     def get(self, request, search_pattern_id, *args, **kwargs):
+#         search_pattern = get_object_or_404(SearchPattern, id=search_pattern_id)
+#         return render(request, template_name="logs/search-patterns/search-pattern-detail.html", context={"search_pattern": search_pattern})
 
 
 class SearchPatternEditView(views.View):
@@ -237,3 +240,50 @@ class SearchPatternDeleteView(views.View):
         search_pattern = get_object_or_404(SearchPattern, id=search_pattern_id)
         search_pattern.delete()
         return render(request, template_name="success.html", context={"message": "Вы успеншо удалили поисковый паттерн"})
+    
+
+# One Time Scan Views
+
+
+class OneTimeScanListView(views.View):
+    def get(self, request, *args, **kwargs):
+        log_files = LogFile.objects.filter(one_time_scan=True)
+        return render(request, template_name="logs/one-time-scans/one-time-scans-list.html", context={"log_files": log_files})
+
+
+class OneTimeScanAddView(views.View):
+    def get(self, request, *args, **kwargs):
+        form = LogFileForm()
+        return render(request, template_name="logs/one-time-scans/one-time-scan-form.html", context={"form": form})
+    
+    def post(self, request, *args, **kwargs):
+        form = LogFileForm(request.POST)
+        if not form.is_valid():
+            return render(request, template_name="logs/one-time-scans/one-time-scan-form.html", context={"form": form})
+        log_file = LogFile.objects.create(**form.cleaned_data, one_time_scan=True)
+        read_log_file_task.delay(log_file.id)
+        return render(request, template_name="success.html", context={"message": "Вы успешно добавили лог-файл"})
+
+
+class OneTimeScanDeleteView(views.View):
+    def get(self, request, log_file_id, *args, **kwargs):
+        log_file = get_object_or_404(LogFile, id=log_file_id)
+        log_file.delete()
+        return render(request, template_name="success.html", context={"message": "Вы успешно удалили лог-файл"})
+    
+
+class OneTimeScanAnomalousEventListView(views.View):
+    def get(self, request, log_file_id, *args, **kwargs):
+        form = OneTimeScanAnomalousEventSearchForm()
+        anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id)
+        return render(request, template_name="logs/one-time-scans/one-time-scan-anomalous-events-list.html", context={"anomalous_events": anomalous_events, "form": form, "log_file_id": log_file_id})
+    
+    def post(self, request, log_file_id, *args, **kwargs):
+        form = OneTimeScanAnomalousEventSearchForm(request.POST)
+        if not form.is_valid():
+            return self.get(self, request, *args, **kwargs)
+        anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id)
+        text = form.cleaned_data.get('text')
+        if text:
+            anomalous_events = anomalous_events.filter(text__contains=text)
+        return render(request, template_name="logs/one-time-scans/one-time-scan-anomalous-events-list.html", context={"anomalous_events": anomalous_events, "form": form, "log_file_id": log_file_id})

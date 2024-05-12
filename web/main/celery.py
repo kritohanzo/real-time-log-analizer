@@ -11,7 +11,7 @@ app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
     'check_log_files_every_5_sec': {
-        'task': 'logs.tasks.read_log_file_task',
+        'task': 'logs.tasks.read_log_files_task',
         'schedule': timedelta(seconds=5)
     }
 }

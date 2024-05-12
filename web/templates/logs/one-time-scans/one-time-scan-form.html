@@ -10,13 +10,9 @@
 
 {% block header %} {% include 'includes/header.html' %} {% endblock %}
 {% block content %}
+
 <div class="min-vh-100 d-flex justify-content-center align-items-center">
-    <form class="g-3 w-25" action="
-        {% if is_edit %} 
-            {% url 'logs:log_file_edit' log_file_id=log_file_id %}
-        {% else %}
-            {% url 'logs:log_file_add' %}
-        {% endif %}" method="post">
+    <form class="g-3 w-25" action="{% url 'logs:one_time_scan_add' %}" method="post">
 
         {% csrf_token %}
 

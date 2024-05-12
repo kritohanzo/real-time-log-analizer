@@ -8,10 +8,17 @@ services:
   postgres:
     image: postgres:15.6
     ports:
-      - "6432:5432"
+      - "5432:5432"
     env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      - redis
   redis:
     image: redis:7.2.4
   django:
@@ -20,8 +27,8 @@ services:
       dockerfile: ./web/Dockerfile
     env_file: .env
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
     volumes:
       - django_static:/django_static/
   celery:
@@ -51,3 +58,5 @@ services:
       - "80:80"
     volumes:
       - django_static:/usr/share/nginx/html/
+    depends_on:
+      - django

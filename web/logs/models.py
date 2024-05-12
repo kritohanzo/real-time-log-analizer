@@ -84,6 +84,10 @@ class LogFile(models.Model):
         null=True,
         related_name="log_files",
     )
+    one_time_scan = models.BooleanField(
+        verbose_name="Одноразовое сканирование",
+        default=False
+    )
     last_positions = models.IntegerField(
         verbose_name="Последняя позиция при чтении", default=0
     )

@@ -1,8 +1,7 @@
 from celery import shared_task
 from logs.models import LogFile, AnomalousEvent
 import os
-
-PATTERN = "auth error"
+import pathlib
 
 def prepare_lines(lines: list[str]) -> list[str]:
     """Подготавливает строки к анализу.
@@ -24,22 +23,34 @@ def analyze_log_lines(log_file_id: int, lines: list[str]) -> None:
     если строка является аномальной.
     """
     prepared_lines = prepare_lines(lines)
+    log_file = LogFile.objects.get(id=log_file_id)
+    log_file_type = log_file.type
+    search_patterns = log_file_type.search_patterns.all()
+    print(log_file)
+    print(search_patterns)
     for line in prepared_lines:
-        if PATTERN in line:
-            log_file = LogFile.objects.get(id=log_file_id)
-            AnomalousEvent.objects.create(text=line, log_file=log_file)
+        for search_pattern in search_patterns:
+            if search_pattern.search_type == "SIMPLE":
+                print("YES")
+                if search_pattern.pattern in line:
+                    print("YESYES")
+                    AnomalousEvent.objects.create(text=line, log_file=log_file)
+            elif search_pattern.search_type == "REGEX":
+                pass
+            elif search_pattern.search_type == "COEFFICIENT":
+                pass
 
 @shared_task
-def read_log_file_task() -> None:
+def read_log_files_task() -> None:
     """Анализирует лог-файлы на предмет новых строк.
 
     Проходится по каждому лог-файлу в поиске новых строк,
     которые будут переданы в функцию построчного анализа
     с использованием паттернов.
     """
-    log_files = LogFile.objects.all()
+    log_files = LogFile.objects.filter(one_time_scan=False)
     for log_file in log_files:
-        with open(os.path.join("/outer/", log_file.path), mode="r") as file:
+        with open(os.path.join("/outer", log_file.path[1:]), mode="r") as file:
             if not log_file.last_positions:
                 file.seek(0, 2)
             else:
@@ -49,3 +60,23 @@ def read_log_file_task() -> None:
             log_file.last_positions = new_position
             log_file.save()
             analyze_log_lines.delay(log_file.id, new_lines)
+
+@shared_task
+def read_log_file_task(log_file_id: int) -> None:
+    """Анализирует конкретный лог-файл на предмет новых строк.
+
+    Проходится по каждому лог-файлу в поиске новых строк,
+    которые будут переданы в функцию построчного анализа
+    с использованием паттернов.
+    """
+    log_file = LogFile.objects.get(id=log_file_id)
+    with open(os.path.join("/outer", log_file.path[1:]), mode="r") as file:
+        if not log_file.last_positions:
+            file.seek(0, 2)
+        else:
+            file.seek(log_file.last_positions)
+        new_lines = file.readlines()
+        new_position = file.tell()
+        log_file.last_positions = new_position
+        log_file.save()
+        analyze_log_lines.delay(log_file.id, new_lines)

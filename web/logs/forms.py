@@ -30,6 +30,13 @@ class LogFileForm(forms.ModelForm):
         ),
         empty_label="—"
     )
+    # one_time_scan = forms.CharField(
+    #     label="Одноразовое сканирование",
+    #     required=False,
+    #     widget=forms.CheckboxInput(
+    #         attrs={"placeholder": "Выберите тип поиска", "class": "form-check form-switch form-check-input"}
+    #     ),
+    # )
     
     class Meta:
         model = LogFile
@@ -90,7 +97,15 @@ class SearchPatternForm(forms.ModelForm):
         fields = ("name", "pattern", "search_type")
 
 
-class MainPageForm(forms.Form):
+class AnomalousEventSearchForm(forms.Form):
+    text = forms.CharField(
+        label="Текст события",
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Введите текст события", "class": "form-control"}
+        ),
+    )
     start_datetime = forms.DateTimeField(
         label="Начало периода",
         required=True,
@@ -142,7 +157,51 @@ class MainPageForm(forms.Form):
     )
 
 
-class AnomalousEventSearchForm(forms.Form):
+# class AnomalousEventSearchForm(forms.Form):
+#     text = forms.CharField(
+#         label="Текст события",
+#         max_length=255,
+#         required=False,
+#         widget=forms.TextInput(
+#             attrs={"placeholder": "Введите текст события", "class": "form-control"}
+#         ),
+#     )
+#     start_datetime = forms.DateTimeField(
+#         label="Начало периода",
+#         required=False,
+#         widget=forms.TextInput(
+#             attrs={
+#                 "placeholder": "Выберите начала периода",
+#                 "class": "form-control",
+#                 "type": "datetime-local",
+#                 "value": "—"
+#             }
+#         ),
+#     )
+#     end_datetime = forms.DateTimeField(
+#         label="Конец периода",
+#         required=False,
+#         widget=forms.TextInput(
+#             attrs={
+#                 "placeholder": "Выберите начала периода",
+#                 "class": "form-control",
+#                 "type": "datetime-local",
+#                 "value": "—"
+#             }
+#         ),
+#     )
+#     log_file = forms.ModelChoiceField(
+#         queryset=LogFile.objects.filter(one_time_scan=False),
+#         required=False,
+#         label="Лог-файл",
+#         widget=forms.Select(
+#             attrs={"class": "form-control"}
+#         ),
+#         empty_label="Любой"
+#     )
+
+
+class OneTimeScanAnomalousEventSearchForm(forms.Form):
     text = forms.CharField(
         label="Текст события",
         max_length=255,
@@ -150,37 +209,4 @@ class AnomalousEventSearchForm(forms.Form):
         widget=forms.TextInput(
             attrs={"placeholder": "Введите текст события", "class": "form-control"}
         ),
-    )
-    start_datetime = forms.DateTimeField(
-        label="Начало периода",
-        required=False,
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Выберите начала периода",
-                "class": "form-control",
-                "type": "datetime-local",
-                "value": "—"
-            }
-        ),
-    )
-    end_datetime = forms.DateTimeField(
-        label="Конец периода",
-        required=False,
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Выберите начала периода",
-                "class": "form-control",
-                "type": "datetime-local",
-                "value": "—"
-            }
-        ),
-    )
-    log_file = forms.ModelChoiceField(
-        queryset=LogFile.objects.all(),
-        required=False,
-        label="Лог-файл",
-        widget=forms.Select(
-            attrs={"class": "form-control"}
-        ),
-        empty_label="Любой"
     )

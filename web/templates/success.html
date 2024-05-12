@@ -4,6 +4,12 @@
 {% block content %}
 <div class="min-vh-100 d-flex flex-column justify-content-center align-items-center">
     <div class="mb-2">{{ message }}</div>
-    <a class="col-3 btn btn-outline-light mx-1" href="{% url 'logs:main_page' %}">На главную</a>
+    <!-- <a class="col-3 btn btn-outline-light mx-1" href="{% url 'logs:main_page' %}">На главную</a> -->
 </div>
+<script>
+    function goBack() {
+        window.location.replace(document.referrer);
+    }
+    setInterval(goBack, 1000);
+</script>
 {% endblock %}

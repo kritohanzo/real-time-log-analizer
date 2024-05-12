@@ -16,6 +16,9 @@ def notify_users(sender, instance, *args, **kwargs):
     рассылая его всем пользователям, которые в данный момент
     находятся на странице /logs/.
     """
+    if instance.log_file.one_time_scan:
+        return
+    
     message = {
         "id": instance.id,
         "text": instance.text,
