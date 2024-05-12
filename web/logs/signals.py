@@ -3,10 +3,12 @@ from django.dispatch import receiver
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from logs.models import AnomalousEvent
+from users.models import User
 import json
 import datetime
 from zoneinfo import ZoneInfo
 from qsstats import QuerySetStats
+from django.core.mail import send_mail
 
 @receiver(signal=post_save, sender=AnomalousEvent)
 def notify_users(sender, instance, *args, **kwargs):
@@ -18,7 +20,7 @@ def notify_users(sender, instance, *args, **kwargs):
     """
     if instance.log_file.one_time_scan:
         return
-    
+
     message = {
         "id": instance.id,
         "text": instance.text,
@@ -34,9 +36,6 @@ def notify_users(sender, instance, *args, **kwargs):
     }
     message = json.dumps(message)
 
-    # message_datetime = instance.fact_datetime or instance.detected_datetime
-    # message = f"[{instance.log_file.name} | {message_datetime}] {instance.text}"
-    
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         "logs",

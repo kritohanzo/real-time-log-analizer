@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from users.models import User, RoleChoices
-from logs.models import LogType, LogFile, SearchPattern, SearchPatternTypeChoices, AnomalousEvent
+from logs.models import LogType, LogFile, SearchPattern, SearchPatternTypeChoices, AnomalousEvent, NotificationType
 import datetime
 
 class LogFileForm(forms.ModelForm):
@@ -90,11 +90,20 @@ class SearchPatternForm(forms.ModelForm):
         widget=forms.Select(
             attrs={"placeholder": "Выберите тип поиска", "class": "form-select"}
         ),
+    )    
+    notification_types = forms.ModelMultipleChoiceField(
+        queryset=NotificationType.objects.all(),
+        label="Типы оповещений",
+        required=False,
+        widget=forms.CheckboxSelectMultiple(
+            attrs={"class": "form-check form-check-inline"}
+        ),
+        initial=NotificationType.objects.filter(method="websocket")
     )
-
+    
     class Meta:
         model = SearchPattern
-        fields = ("name", "pattern", "search_type")
+        fields = ("name", "pattern", "search_type", "notification_types")
 
 
 class AnomalousEventSearchForm(forms.Form):

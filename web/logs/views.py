@@ -10,6 +10,7 @@ from django.utils.timezone import get_current_timezone
 import json
 from zoneinfo import ZoneInfo
 from django.db.models import Count, F, QuerySet
+from django.db.models.functions import Lower
 import pytz
 
 
@@ -32,7 +33,7 @@ class MainPageView(views.View):
         text, start_datetime, end_datetime, log_file, log_type, search_pattern = form.cleaned_data.values()
         anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False)
         if text:
-            anomalous_events = anomalous_events.filter(text__contains=text)
+            anomalous_events = anomalous_events.filter(text__icontains=text)
         if log_file:
             anomalous_events = anomalous_events.filter(log_file=log_file)
         if log_type:
@@ -65,7 +66,7 @@ class AnomalousEventListView(views.View):
         text, start_datetime, end_datetime, log_file, log_type, search_pattern = form.cleaned_data.values()
         anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False)
         if text:
-            anomalous_events = anomalous_events.filter(text__contains=text)
+            anomalous_events = anomalous_events.filter(text__icontains=text)
         if log_file:
             anomalous_events = anomalous_events.filter(log_file=log_file)
         if log_type:
@@ -92,8 +93,10 @@ class LogFileListView(views.View):
         log_files = LogFile.objects.filter(one_time_scan=False)
         if log_files:
             from random import randint
-            texts = ["Я ВЗЛОМАЛ ВАС АХАХАХА", "КРАСНОЯРСК ГАВНО", "ПРОСТО ТЕСТОВАЯ СТРОЧКА =(", "ВЛАД С ДНЁМ РОЖДЕНИЯ!!!!"]
-            AnomalousEvent.objects.create(text=texts[randint(0, len(texts)-1)], log_file=log_files[randint(0, len(log_files)-1)])
+            log_file = log_files[randint(0, len(log_files)-1)]
+            texts = ["ПРОСТО ТЕСТОВАЯ СТРОЧКА =("]
+            text = texts[randint(0, len(texts)-1)]
+            AnomalousEvent.objects.create(text=text, log_file=log_file)
         return render(request, template_name="logs/log-files/log-files-list.html", context={"log_files": log_files})
 
 
@@ -178,7 +181,7 @@ class LogTypeEditView(views.View):
         log_type = get_object_or_404(LogType, id=log_type_id)
         form = LogTypeForm(request.POST, instance=log_type)
         if not form.is_valid():
-            return render(request, template_name="logs/log-types/log-type-form.html", context={"form": form, "is_edit": True})
+            return render(request, template_name="logs/log-types/log-type-form.html", context={"form": form, "log_type_id": log_type_id, "is_edit": True})
         form.save()
         search_patterns = form.cleaned_data.pop("search_patterns")
         log_type.search_patterns.set(search_patterns)
@@ -210,7 +213,9 @@ class SearchPatternAddView(views.View):
         form = SearchPatternForm(request.POST)
         if not form.is_valid():
             return render(request, template_name="logs/search-patterns/search-pattern-form.html", context={"form": form})
-        SearchPattern.objects.create(**form.cleaned_data)
+        notification_types = form.cleaned_data.pop("notification_types")
+        search_pattern = SearchPattern.objects.create(**form.cleaned_data)
+        search_pattern.notification_types.set(notification_types)
         return render(request, template_name="success.html", context={"message": "Вы успешно добавили поисковый паттерн"})
 
 
@@ -230,8 +235,10 @@ class SearchPatternEditView(views.View):
         search_pattern = get_object_or_404(SearchPattern, id=search_pattern_id)
         form = SearchPatternForm(request.POST, instance=search_pattern)
         if not form.is_valid():
-            return render(request, template_name="logs/search-patterns/search-pattern-form.html", context={"form": form, "is_edit": True})
+            return render(request, template_name="logs/search-patterns/search-pattern-form.html", context={"form": form, "search_pattern_id": search_pattern_id, "is_edit": True})
         form.save()
+        notification_types = form.cleaned_data.pop("notification_types")
+        search_pattern.notification_types.set(notification_types)
         return render(request, template_name="success.html", context={"message": "Вы успешно изменили поисковый паттерн"})
 
 
@@ -285,5 +292,5 @@ class OneTimeScanAnomalousEventListView(views.View):
         anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id)
         text = form.cleaned_data.get('text')
         if text:
-            anomalous_events = anomalous_events.filter(text__contains=text)
+            anomalous_events = anomalous_events.filter(text__icontains=text)
         return render(request, template_name="logs/one-time-scans/one-time-scan-anomalous-events-list.html", context={"anomalous_events": anomalous_events, "form": form, "log_file_id": log_file_id})

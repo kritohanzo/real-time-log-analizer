@@ -141,3 +141,11 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 # CELERY_TIMEZONE = 'Europe/Moscow'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.mail.ru")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False") == "True"
+EMAIL_PORT = os.getenv("EMAIL_PORT", 465)
+EMAIL_USE_SSL =  os.getenv("EMAIL_USE_SSL", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "example@example.com")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "exampleExample")
+DEFAULT_FROM_EMAIL = "log_analyzer@mail.ru"

@@ -166,9 +166,8 @@
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script>
-        socket_url = 'ws://' + window.location.hostname + '/ws'
+        socket_url = 'ws://' + window.location.hostname + ":" + window.location.port + '/ws'
         const socket = new WebSocket(socket_url);
         const notificationSound = document.getElementById('notificationSound');
 

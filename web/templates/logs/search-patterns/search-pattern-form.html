@@ -22,10 +22,10 @@
         {% csrf_token %}
 
         {% for field in form %}
-        <div class="col-12 mb-2">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            <div>{{ field }}</div>
-        </div>
+            <div class="col-12 mb-2">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <div>{{ field }}</div>
+            </div>
         {% endfor %}
 
         <div class="col-12 text-center">
@@ -39,5 +39,7 @@
         </div>
     </form>
 </div>
-
+<script>
+    $("label[for='id_notification_types_0'] input").attr("disabled", true);
+</script>
 {% endblock %}

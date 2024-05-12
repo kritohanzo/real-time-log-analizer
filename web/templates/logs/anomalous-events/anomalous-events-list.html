@@ -6,23 +6,27 @@
 <div class="container mt-5 text-center">
     
     <h2 class="mb-3">Список аномальных событий в лог-файлах</h2>
-    <div class="d-flex justify-content-center">
-        <form class="col-3 mb-3 g-3" action="{% url 'logs:anomalous_events_list' %}" method="post">
-            {% csrf_token %}
+
+    <form class="col-12 mb-3 g-3" action="{% url 'logs:anomalous_events_list' %}" method="post">
+        {% csrf_token %}
+
+        <div class="row">
             {% for field in form %}
-                <div class="col-12 mb-2">
+                <div class="col-4 mb-2">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     <div>{{ field }}</div>
                 </div>
             {% endfor %}
+        </div>
 
-            <div class="col-12 text-center">
-                <button type="submit" class="btn btn-outline-light col-12 mt-2">
-                    Поиск
-                </button>
-            </div>
-        </form>
-    </div>
+        <div class="d-flex justify-content-center text-center">
+            <button type="submit" class="btn btn-outline-light col-6 mt-2">
+                Поиск
+            </button>
+        </div>
+
+    </form>
+
 
     <table class="table table-striped table-dark table-bordered border-white align-middle col-12">
         <thead>
@@ -52,7 +56,7 @@
                     <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_files_list'%}#{{ anomalous_event.log_file.id }}">{{ anomalous_event.log_file }}</a>
                 </td>
                 <td>
-                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
+                    <a class="col-8 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
                 </td>
             </tr>
             {% endfor %}
@@ -74,9 +78,8 @@
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script>
-        socket_url = 'ws://' + window.location.hostname + '/ws'
+        socket_url = 'ws://' + window.location.hostname + ":" + window.location.port + '/ws'
         const socket = new WebSocket(socket_url);
         const notificationSound = document.getElementById('notificationSound');
 

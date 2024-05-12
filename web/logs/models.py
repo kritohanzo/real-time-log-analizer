@@ -11,6 +11,25 @@ class SearchPatternTypeChoices(Enum):
     def choices(cls):
         return tuple((role.name, role.value) for role in cls)
 
+
+class NotificationType(models.Model):
+    description = models.CharField(
+        max_length=64, verbose_name="Описание", null=False, blank=False
+    )
+    method = models.CharField(
+        max_length=64, verbose_name="Метод оповещения",
+        null=False, blank=False, unique=True
+    )
+
+    class Meta:
+        verbose_name_plural = "Типы оповещений"
+        verbose_name = "Тип оповещения"
+        ordering = ("id",)
+
+    def __str__(self):
+        return self.description
+    
+
 class SearchPattern(models.Model):
     name = models.CharField(
         max_length=255,
@@ -28,6 +47,10 @@ class SearchPattern(models.Model):
         null=False,
         blank=False
     )
+    notification_types = models.ManyToManyField(
+        NotificationType, through="SearchPatternNotificationType",
+        verbose_name="Типы оповещений", related_name="search_patterns"
+    )
 
     class Meta:
         verbose_name_plural = "Поисковые паттерны"
@@ -37,6 +60,27 @@ class SearchPattern(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_search_type_display().lower()})"
     
+
+class SearchPatternNotificationType(models.Model):
+    search_pattern = models.ForeignKey(
+        SearchPattern, on_delete=models.SET_NULL,
+        null=True, related_name="search_pattern_notification_types",
+        verbose_name="Поисковый паттерн типа оповещения"
+    )
+    notification_type = models.ForeignKey(
+        NotificationType, on_delete=models.SET_NULL,
+        null=True, related_name="notification_type_search_patterns",
+        verbose_name="Тип оповещения поискового паттерна"
+    )
+
+    class Meta:
+        verbose_name_plural = "Связи поисковых паттернов и типов оповещений"
+        verbose_name = "Связь поискового паттерна и типа оповещения"
+        ordering = ("id",)
+
+    def __str__(self):
+        return f"Поисковый паттерн '{self.search_pattern}' использует тип оповещения '{self.notification_type}'"
+
 
 class LogType(models.Model):
     name = models.CharField(
@@ -111,7 +155,11 @@ class AnomalousEvent(models.Model):
     detected_datetime = models.DateTimeField(
         verbose_name="Дата и время обнаружения", auto_now_add=True
     )
-    
+    # detected_search_pattern = models.ForeignKey(
+    #     SearchPattern, related_name="anomalous_events",
+    #     on_delete=models.SET_NULL, null=True,
+    #     verbose_name="Поисковый паттерн, обнаруживший событие"
+    # )
     log_file = models.ForeignKey(
         LogFile,
         on_delete=models.SET_NULL,
