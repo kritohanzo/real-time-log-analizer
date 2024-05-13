@@ -108,9 +108,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
-LOGIN_URL = "auth:login"
+LOGIN_URL = "users:user_login"
 LOGIN_REDIRECT_URL = "logs:main_page"
-LOGOUT_URL = "auth:logout"
+LOGOUT_URL = "users:user_logout"
 
 WSGI_APPLICATION = "main.wsgi.application"
 ASGI_APPLICATION = 'main.asgi.application'
@@ -149,3 +149,9 @@ EMAIL_USE_SSL =  os.getenv("EMAIL_USE_SSL", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "example@example.com")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "exampleExample")
 DEFAULT_FROM_EMAIL = "log_analyzer@mail.ru"
+
+MTS_API_KEY = os.getenv("MTS_API_KEY", "some_api_key")
+MTS_NUMBER = os.getenv("MTS_NUMBER", "some_number")
+MTS_SMS_API_URL = "https://api.exolve.ru/messaging/v1/SendSMS"
+MTS_CALL_API_URL = "https://api.exolve.ru/call/v1/MakeVoiceMessage"
+MTS_CALL_SERVICE_ID = os.getenv("MTS_CALL_SERVICE_ID", "some_call_service_id")

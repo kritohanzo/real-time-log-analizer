@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{% if is_edit %}
+    Изменение пользователя
+{% else %}
+    Добавление пользователя
+{% endif %}
+{% endblock %}
+
+{% block header %} {% include 'includes/header.html' %} {% endblock %}
+{% block content %}
+
+<div class="min-vh-100 d-flex justify-content-center align-items-center">
+    <form class="g-3 w-25" action="
+        {% if is_edit %} 
+            {% url 'users:user_edit' user_id=user_id %}
+        {% else %}
+            {% url 'users:user_add' %}
+        {% endif %}" method="post">
+
+        {% csrf_token %}
+
+        {% for field in form %}
+            <div class="col-12 mb-2">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <div>{{ field }}</div>
+            </div>
+        {% endfor %}
+
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-outline-light col-12 mt-2">
+                {% if is_edit %}
+                    Измененить пользователя
+                {% else %}
+                    Добавить пользователя
+                {% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+<script>
+    $("label[for='id_notification_types_0'] input").attr("disabled", true);
+</script>
+{% endblock %}

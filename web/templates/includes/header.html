@@ -13,11 +13,11 @@
         <div class="col-3 d-flex justify-content-end">
 
             {% if request.user.role == 'ADMIN' %}
-                <a class="col-5 btn btn-outline-light mx-1" href="{% url 'auth:users' %}">Пользователи системы</a>
+                <a class="col-5 btn btn-outline-light mx-1" href="{% url 'users:users_list' %}">Пользователи системы</a>
             {% endif %}
 
             {% if request.user.is_authenticated %}
-                <form class="col-5" action="{% url 'auth:logout' %}" method="post">
+                <form class="col-5" action="{% url 'users:user_logout' %}" method="post">
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-12">
@@ -26,7 +26,7 @@
                     </div>
                 </form>
             {% else %}
-                <a class="col-6 btn btn-outline-light mx-1" href="{% url 'auth:login' %}">Войти в аккаунт</a>
+                <a class="col-6 btn btn-outline-light mx-1" href="{% url 'users:user_login' %}">Войти в аккаунт</a>
             {% endif %}
 
         </div>

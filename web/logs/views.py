@@ -12,6 +12,10 @@ from zoneinfo import ZoneInfo
 from django.db.models import Count, F, QuerySet
 from django.db.models.functions import Lower
 import pytz
+from django.core.mail import send_mail
+from users.models import User
+from main.settings import MTS_API_KEY, MTS_SMS_API_URL, MTS_NUMBER, MTS_CALL_API_URL, MTS_CALL_SERVICE_ID
+import requests
 
 
 class MainPageView(views.View):
@@ -96,7 +100,56 @@ class LogFileListView(views.View):
             log_file = log_files[randint(0, len(log_files)-1)]
             texts = ["ПРОСТО ТЕСТОВАЯ СТРОЧКА =("]
             text = texts[randint(0, len(texts)-1)]
-            AnomalousEvent.objects.create(text=text, log_file=log_file)
+            ae = AnomalousEvent.objects.create(text=text, log_file=log_file)
+            search_patterns = ae.log_file.type.search_patterns.all()
+            for search_pattern in search_patterns:
+                notification_types = search_pattern.notification_types.all()
+                for notification_type in notification_types:
+                    if notification_type.method == 'email':
+                        users = notification_type.users.filter(email__isnull=False).exclude(email__exact='')
+                        try:
+                            send_mail("Аномальное событие", f"В файле {log_file.name} произошло аномальное событие: {ae.text}", from_email=None, recipient_list=[user.email for user in users])
+                        except:
+                            print("send mail error")
+                    if notification_type.method == 'sms':
+                        users = notification_type.users.filter(phone_number__isnull=False).exclude(phone_number__exact='')
+                        for user in users:
+                            try:
+                                response = requests.post(
+                                    MTS_SMS_API_URL,
+                                    headers={
+                                        "Authorization": f"Bearer {MTS_API_KEY}"
+                                    },
+                                    json={
+                                        "number": MTS_NUMBER,
+                                        "destination": user.phone_number.replace("+", ""),  
+                                        "text": f'AN. EV. "{ae.log_file}": {ae.text[:100]}'   
+                                    }
+                                )
+                                if response.status_code != 200:
+                                        raise Exception()
+                            except:
+                                print("send sms error")
+                    if notification_type.method == 'call':
+                        users = notification_type.users.filter(phone_number__isnull=False).exclude(phone_number__exact='')
+                        for user in users:
+                            try:
+                                response = requests.post(
+                                    MTS_CALL_API_URL,
+                                    headers={
+                                        "Authorization": f"Bearer {MTS_API_KEY}"
+                                    },
+                                    json={
+                                        "source": MTS_NUMBER,
+                                        "destination": user.phone_number.replace("+", ""),  
+                                        "service_id": MTS_CALL_SERVICE_ID
+                                    }
+                                )
+                                if response.status_code != 200:
+                                        raise Exception()
+                            except:
+                                print("call error")
+
         return render(request, template_name="logs/log-files/log-files-list.html", context={"log_files": log_files})
 
 

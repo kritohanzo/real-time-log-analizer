@@ -4,10 +4,11 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import UserManager as DjangoUserManager
 from enum import Enum
 from django.core.mail import send_mail
+from logs.models import NotificationType
 
 
 class RoleChoices(Enum):
-    VIEWER = "Зритель"
+    VIEWER = "Наблюдатель"
     SPECIALIST = "Специалист"
     ADMIN = "Администратор"
 
@@ -66,31 +67,20 @@ class User(AbstractBaseUser):
         blank=True,
     )
     is_active = models.BooleanField(verbose_name="Активен", default=True)
+    notification_types = models.ManyToManyField(
+        NotificationType, through="UserNotificationType",
+        related_name="users", verbose_name="Типы оповещений"
+    )                                
 
     objects = UserManager()
 
     USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = ["name", "surname", "patronymic", "email"]
+    # REQUIRED_FIELDS = ["name", "surname", "patronymic", "email"]
     EMAIL_FIELD = "email"
 
     def clean(self):
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)
-
-    def get_full_name(self):
-        """
-        Return the first_name plus the last_name, with a space in between.
-        """
-        full_name = "%s %s" % (self.name, self.surname)
-        return full_name.strip()
-
-    def get_short_name(self):
-        """Return the short name for the user."""
-        return self.name
-
-    def email_user(self, subject, message, from_email=None, **kwargs):
-        """Send an email to this user."""
-        send_mail(subject, message, from_email, [self.email], **kwargs)
 
     class Meta:
         verbose_name_plural = "Пользователи"
@@ -104,3 +94,14 @@ class User(AbstractBaseUser):
 
     def __str__(self):
         return self.username
+
+
+class UserNotificationType(models.Model):
+    user = models.ForeignKey(
+        User, verbose_name="Пользователь, получающий оповещения", null=True,
+        on_delete=models.SET_NULL, related_name="user_notification_types"
+    )
+    notification_type = models.ForeignKey(
+        NotificationType, verbose_name="Тип оповещения, которые получает пользователь",
+        null=True, on_delete=models.SET_NULL, related_name="notification_type_users"
+    )
