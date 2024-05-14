@@ -98,7 +98,7 @@ class UserForm(forms.ModelForm):
         label="Типы оповещений",
         required=False,
         widget=forms.CheckboxSelectMultiple(
-            attrs={"class": "form-check form-check-inline"}
+            attrs={"class": "form-check form-check-inline"},
         ),
         initial=NotificationType.objects.filter(method="websocket")
     )

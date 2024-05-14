@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %} Главная страница {% endblock %}
+{% block title %} Список пользователей {% endblock %}
 {% block header %} {% include 'includes/header.html' %} {% endblock %}
 {% block content %}
 <div class="container mt-5 text-center">
     <h2 class="mb-4">Список добавленных лог-файлов для постоянного сканирования</h2>
     <a class="col-4 btn btn-outline-light mx-1 mb-4" href="{% url 'users:user_add' %}">Добавить пользователя</a>
-    <table class="table table-striped table-dark table-bordered border-white">
+    <table class="table table-striped table-dark table-bordered border-white align-middle">
         <thead>
             <tr>
                 <th scope="col">ID</th>
@@ -14,6 +14,8 @@
                 <th scope="col">Фамилия</th>
                 <th scope="col">Отчество</th>
                 <th scope="col">Почта</th>
+                <th scope="col">Номер телефона</th>
+                <th scope="col">Типы оповещений</th>
                 <th scope="col">Роль</th>
                 <th scope="col">Действие</th>
             </tr>
@@ -27,10 +29,16 @@
                 <td>{{ user.surname }}</td>
                 <td>{{ user.patronymic }}</td>
                 <td>{{ user.email }}</td>
+                <td>{{ user.phone_number }}</td>
+                <td>
+                    {% for notification_type in user.notification_types.all %}
+                        <a class="col-9 btn btn-sm btn-outline-light m-1" href="{% url 'users:user_edit' user_id=user.id %}">{{ notification_type }}</a>
+                    {% endfor %}
+                </td>
                 <td>{{ user.get_role_display }}</td>
                 <td>
-                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'users:user_edit' user_id=user.id %}">Изменить</a>
-                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'users:user_delete' user_id=user.id %}">Удалить</a>
+                    <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'users:user_edit' user_id=user.id %}">Изменить</a>
+                    <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'users:user_delete' user_id=user.id %}">Удалить</a>
                 </td>
             </tr>
             {% endfor %}

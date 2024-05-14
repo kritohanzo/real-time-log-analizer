@@ -11,6 +11,12 @@ class Command(BaseCommand):
     help = "create deafult superuser"
 
     def handle(self, *args, **options):
+        print("START CREATION DEFAULT SUPERUSER:", end=" ")
         username = os.getenv("DEFAULT_SUPERUSER_USERNAME", "root")
         password = os.getenv("DEFAULT_SUPERUSER_PASSWORD", "root")
-        User.objects.create_superuser(username=username, password=password)
+        user_exists = User.objects.filter(username=username).exists()
+        if not user_exists:
+            User.objects.create_superuser(username=username, password=password)
+            print("CREATED")
+        else:
+            print('ALREADY EXISTS')

@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
-{% block title %} Список добавленных поисковых паттернов {% endblock %}
+{% block title %} Список поисковых паттернов {% endblock %}
 {% block header %} {% include 'includes/header.html' %} {% endblock %}
 {% block content %}
 <div class="container mt-5 text-center">
     <h2 class="mb-4">Список добавленных поисковых паттернов</h2>
-    <a class="col-4 btn btn-outline-light mx-1 mb-4" href="{% url 'logs:search_pattern_add' %}">Добавить поисковый паттерн</a>
+    {% if request.user.role in 'ADMIN,SPECIALIST' %}
+        <a class="col-4 btn btn-outline-light mx-1 mb-4" href="{% url 'logs:search_pattern_add' %}">Добавить поисковый паттерн</a>
+    {% endif %}
     <table class="table table-striped table-dark table-bordered border-white align-middle">
         <thead>
             <tr>
@@ -12,6 +14,7 @@
                 <th scope="col">Описание</th>
                 <th scope="col">Паттерн</th>
                 <th scope="col">Тип поиска</th>
+                <th scope="col">Типы оповещений</th>
                 <th scope="col">Действие</th>
             </tr>
         </thead>
@@ -23,8 +26,17 @@
                 <td>{{ search_pattern.pattern }}</td>
                 <td>{{ search_pattern.get_search_type_display }}</td>
                 <td>
-                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_edit' search_pattern_id=search_pattern.id %}">Изменить</a>
-                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_delete' search_pattern_id=search_pattern.id %}">Удалить</a>
+                    {% for notification_type in search_pattern.notification_types.all %}
+                        <a class="col-10 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_edit' search_pattern_id=search_pattern.id %}">{{ notification_type }}</a>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if request.user.role in 'ADMIN,SPECIALIST' %}
+                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_edit' search_pattern_id=search_pattern.id %}">Изменить</a>
+                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_delete' search_pattern_id=search_pattern.id %}">Удалить</a>
+                    {% else %}
+                        —
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

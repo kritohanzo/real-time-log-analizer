@@ -6,6 +6,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.shortcuts import get_object_or_404
 from users.models import User
+from logs.models import NotificationType
 
 
 class UserListView(views.View):
@@ -23,9 +24,12 @@ class UserAddView(views.View):
         form = UserForm(request.POST)
         if not form.is_valid():
             return render(request, template_name="users/user-form.html", context={"form": form})
-        notification_types = form.cleaned_data.pop("notification_types")
+        notification_types = NotificationType.objects.filter(method="websocket") | form.cleaned_data.pop("notification_types")
+        password = form.cleaned_data.pop("password")
         user = User.objects.create(**form.cleaned_data)
         user.notification_types.set(notification_types)
+        user.set_password(password)
+        user.save()
         return render(request, template_name="success.html", context={"message": "Вы успешно добавили пользователя"})
     
 
@@ -42,7 +46,7 @@ class UserEditView(views.View):
         if not form.is_valid():
             return render(request, template_name="users/user-form.html", context={"form": form, "user_id": user_id, "is_edit": True})
         form.save()
-        notification_types = form.cleaned_data.pop("notification_types")
+        notification_types = NotificationType.objects.filter(method="websocket") | form.cleaned_data.pop("notification_types")
         user.notification_types.set(notification_types)
         new_password = form.cleaned_data.pop("password")
         if new_password != user_password:

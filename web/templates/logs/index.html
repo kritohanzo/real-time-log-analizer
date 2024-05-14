@@ -53,7 +53,7 @@
                     <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_files_list'%}#{{ anomalous_event.log_file.id }}">{{ anomalous_event.log_file }}</a>
                 </td>
                 <td>
-                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
+                    <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
                 </td>
             </tr>
             {% endfor %}
@@ -206,7 +206,7 @@
                 $('.table tbody tr').first().append('<td>' + data.fact_datetime + '</td>');
                 $('.table tbody tr').first().append('<td>' + data.detected_datetime + '</td>');
                 $('.table tbody tr').first().append("<td><a class='col-10 btn btn-sm btn-outline-light mx-1' href='{% url 'logs:log_files_list'%}#" + data.log_file.id + "'>" + data.log_file.name + "</a></td>");
-                $('.table tbody tr').first().append("<td><a class='col-6 btn btn-sm btn-outline-light m-1' href='/logs/anomalous-events/" + data.id + "/delete'>Удалить</a></td>");
+                $('.table tbody tr').first().append("<td><a class='col-7 btn btn-sm btn-outline-light m-1' href='/logs/anomalous-events/" + data.id + "/delete'>Удалить</a></td>");
                 $('.table tbody').prepend('</tr>');
 
                 newMetric = data.new_log_metric;

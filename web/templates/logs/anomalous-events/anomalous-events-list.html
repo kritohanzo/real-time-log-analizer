@@ -56,7 +56,11 @@
                     <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_files_list'%}#{{ anomalous_event.log_file.id }}">{{ anomalous_event.log_file }}</a>
                 </td>
                 <td>
-                    <a class="col-8 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
+                    {% if request.user.role in 'ADMIN,SPECIALIST' %}
+                        <a class="col-8 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
+                    {% else %}
+                        —
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -115,7 +119,7 @@
                 $('.table tbody tr').first().append('<td>' + data.fact_datetime + '</td>');
                 $('.table tbody tr').first().append('<td>' + data.detected_datetime + '</td>');
                 $('.table tbody tr').first().append("<td><a class='col-10 btn btn-sm btn-outline-light mx-1' href='{% url 'logs:log_files_list'%}#" + data.log_file.id + "'>" + data.log_file.name + "</a></td>");
-                $('.table tbody tr').first().append("<td><a class='col-6 btn btn-sm btn-outline-light m-1' href='/logs/anomalous-events/" + data.id + "/delete'>Удалить</a></td>");
+                $('.table tbody tr').first().append("<td><a class='col-7 btn btn-sm btn-outline-light m-1' href='/logs/anomalous-events/" + data.id + "/delete'>Удалить</a></td>");
                 $('.table tbody').prepend('</tr>');
             } catch (e) {
                 console.log('Error:', e.message);

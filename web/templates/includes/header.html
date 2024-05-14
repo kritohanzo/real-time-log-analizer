@@ -11,6 +11,10 @@
             {% endif %}
         </div>
         <div class="col-3 d-flex justify-content-end">
+            
+            {% if request.user.role in 'ADMIN,SPECIALIST' %}
+                <a class="col-1 btn btn-outline-light mx-1" href="{% url 'logs:generate_test_anomalous_event' %}">▲</a>
+            {% endif %}
 
             {% if request.user.role == 'ADMIN' %}
                 <a class="col-5 btn btn-outline-light mx-1" href="{% url 'users:users_list' %}">Пользователи системы</a>

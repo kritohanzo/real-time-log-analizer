@@ -3,10 +3,12 @@ from django.views.generic import TemplateView
 from django import views
 import datetime
 from logs.forms import LogFileForm, LogTypeForm, SearchPatternForm, AnomalousEventSearchForm, OneTimeScanAnomalousEventSearchForm
-from logs.models import LogFile, LogType, SearchPattern, AnomalousEvent
+from logs.models import LogFile, LogType, SearchPattern, AnomalousEvent, NotificationType
 from logs.tasks import read_log_file_task
 from qsstats import QuerySetStats
+from random import randint
 from django.utils.timezone import get_current_timezone
+from core.utils import notificate
 import json
 from zoneinfo import ZoneInfo
 from django.db.models import Count, F, QuerySet
@@ -16,6 +18,22 @@ from django.core.mail import send_mail
 from users.models import User
 from main.settings import MTS_API_KEY, MTS_SMS_API_URL, MTS_NUMBER, MTS_CALL_API_URL, MTS_CALL_SERVICE_ID
 import requests
+
+
+class GenerateTestAnomalousEventView(views.View):
+    def get(self, request, *args, **kwargs):
+        log_files = LogFile.objects.filter(one_time_scan=False)
+        if log_files:
+            log_file = log_files[randint(0, len(log_files)-1)]
+            texts = ["Тестовая строка 1", "Тестовая строка 2", "Тестовая строка 3", "Тестовая строка 4"]
+            text = texts[randint(0, len(texts)-1)]
+            anomalous_event = AnomalousEvent.objects.create(text=text, log_file=log_file)
+            search_patterns = anomalous_event.log_file.type.search_patterns.all()
+            for search_pattern in search_patterns:
+                notification_types = search_pattern.notification_types.all()
+                notificate(anomalous_event, notification_types)
+        return render(request, template_name="success.html", context={"message": "Вы успешно сгенерировали аномальное событие"})
+
 
 
 class MainPageView(views.View):
@@ -95,61 +113,6 @@ class AnomalousEventDeleteView(views.View):
 class LogFileListView(views.View):
     def get(self, request, *args, **kwargs):
         log_files = LogFile.objects.filter(one_time_scan=False)
-        if log_files:
-            from random import randint
-            log_file = log_files[randint(0, len(log_files)-1)]
-            texts = ["ПРОСТО ТЕСТОВАЯ СТРОЧКА =("]
-            text = texts[randint(0, len(texts)-1)]
-            ae = AnomalousEvent.objects.create(text=text, log_file=log_file)
-            search_patterns = ae.log_file.type.search_patterns.all()
-            for search_pattern in search_patterns:
-                notification_types = search_pattern.notification_types.all()
-                for notification_type in notification_types:
-                    if notification_type.method == 'email':
-                        users = notification_type.users.filter(email__isnull=False).exclude(email__exact='')
-                        try:
-                            send_mail("Аномальное событие", f"В файле {log_file.name} произошло аномальное событие: {ae.text}", from_email=None, recipient_list=[user.email for user in users])
-                        except:
-                            print("send mail error")
-                    if notification_type.method == 'sms':
-                        users = notification_type.users.filter(phone_number__isnull=False).exclude(phone_number__exact='')
-                        for user in users:
-                            try:
-                                response = requests.post(
-                                    MTS_SMS_API_URL,
-                                    headers={
-                                        "Authorization": f"Bearer {MTS_API_KEY}"
-                                    },
-                                    json={
-                                        "number": MTS_NUMBER,
-                                        "destination": user.phone_number.replace("+", ""),  
-                                        "text": f'AN. EV. "{ae.log_file}": {ae.text[:100]}'   
-                                    }
-                                )
-                                if response.status_code != 200:
-                                        raise Exception()
-                            except:
-                                print("send sms error")
-                    if notification_type.method == 'call':
-                        users = notification_type.users.filter(phone_number__isnull=False).exclude(phone_number__exact='')
-                        for user in users:
-                            try:
-                                response = requests.post(
-                                    MTS_CALL_API_URL,
-                                    headers={
-                                        "Authorization": f"Bearer {MTS_API_KEY}"
-                                    },
-                                    json={
-                                        "source": MTS_NUMBER,
-                                        "destination": user.phone_number.replace("+", ""),  
-                                        "service_id": MTS_CALL_SERVICE_ID
-                                    }
-                                )
-                                if response.status_code != 200:
-                                        raise Exception()
-                            except:
-                                print("call error")
-
         return render(request, template_name="logs/log-files/log-files-list.html", context={"log_files": log_files})
 
 
@@ -218,12 +181,6 @@ class LogTypeAddView(views.View):
         return render(request, template_name="success.html", context={"message": "Вы успешно добавили протокол / ПО"})
 
 
-# class LogTypeDetailView(views.View):
-#     def get(self, request, log_type_id, *args, **kwargs):
-#         log_type = get_object_or_404(LogType, id=log_type_id)
-#         return render(request, template_name="logs/log-types/log-type-detail.html", context={"log_type": log_type})
-
-
 class LogTypeEditView(views.View):
     def get(self, request, log_type_id, *args, **kwargs):
         log_type = get_object_or_404(LogType, id=log_type_id)
@@ -266,16 +223,10 @@ class SearchPatternAddView(views.View):
         form = SearchPatternForm(request.POST)
         if not form.is_valid():
             return render(request, template_name="logs/search-patterns/search-pattern-form.html", context={"form": form})
-        notification_types = form.cleaned_data.pop("notification_types")
+        notification_types = NotificationType.objects.filter(method="websocket") | form.cleaned_data.pop("notification_types")
         search_pattern = SearchPattern.objects.create(**form.cleaned_data)
         search_pattern.notification_types.set(notification_types)
         return render(request, template_name="success.html", context={"message": "Вы успешно добавили поисковый паттерн"})
-
-
-# class SearchPatternDetailView(views.View):
-#     def get(self, request, search_pattern_id, *args, **kwargs):
-#         search_pattern = get_object_or_404(SearchPattern, id=search_pattern_id)
-#         return render(request, template_name="logs/search-patterns/search-pattern-detail.html", context={"search_pattern": search_pattern})
 
 
 class SearchPatternEditView(views.View):
@@ -290,7 +241,7 @@ class SearchPatternEditView(views.View):
         if not form.is_valid():
             return render(request, template_name="logs/search-patterns/search-pattern-form.html", context={"form": form, "search_pattern_id": search_pattern_id, "is_edit": True})
         form.save()
-        notification_types = form.cleaned_data.pop("notification_types")
+        notification_types = NotificationType.objects.filter(method="websocket") | form.cleaned_data.pop("notification_types")
         search_pattern.notification_types.set(notification_types)
         return render(request, template_name="success.html", context={"message": "Вы успешно изменили поисковый паттерн"})
 

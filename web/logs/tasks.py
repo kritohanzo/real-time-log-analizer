@@ -6,6 +6,7 @@ from django.core.mail import send_mail
 import pathlib
 from main.settings import MTS_SMS_API_URL, MTS_API_KEY, MTS_NUMBER, MTS_CALL_API_URL, MTS_CALL_SERVICE_ID
 import requests
+from core.utils import notificate
 
 def prepare_lines(lines: list[str]) -> list[str]:
     """Подготавливает строки к анализу.
@@ -31,58 +32,14 @@ def analyze_log_lines(log_file_id: int, lines: list[str]) -> None:
     log_file_type = log_file.type
     search_patterns = log_file_type.search_patterns.all()
     for line in prepared_lines:
+        print(f'LOG FILE: {log_file} | SCAN LINE: "{line}"')
         for search_pattern in search_patterns:
 
             if search_pattern.search_type == "SIMPLE":
                 if search_pattern.pattern in line:
-                    AnomalousEvent.objects.create(text=line, log_file=log_file)
+                    anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file)
                     notification_types = search_pattern.notification_types.all()
-                    for notification_type in notification_types:
-                        if notification_type.method == "email":
-                            users = notification_type.users.filter(email__isnull=False).exclude(email__exact='')
-                            try:
-                                send_mail("Аномальное событие", f"В файле {log_file.name} произошло аномальное событие: {line}", from_email=None, recipient_list=[user.email for user in users])
-                            except:
-                                print("send mail error")
-                        if notification_type.method == 'sms':
-                            users = notification_type.users.filter(phone_number__isnull=False).exclude(phone_number__exact='')
-                            for user in users:
-                                try:
-                                    response = requests.post(
-                                        MTS_SMS_API_URL,
-                                        headers={
-                                            "Authorization": f"Bearer {MTS_API_KEY}"
-                                        },
-                                        json={
-                                            "number": MTS_NUMBER,
-                                            "destination": user.phone_number.replace("+", ""),  
-                                            "text": f'AN. EV. "{log_file}": {line[:100]}'   
-                                        }
-                                    )
-                                    if response.status_code != 200:
-                                        raise Exception()
-                                except:
-                                    print("send sms error")
-                        if notification_type.method == 'call':
-                            users = notification_type.users.filter(phone_number__isnull=False).exclude(phone_number__exact='')
-                            for user in users:
-                                try:
-                                    response = requests.post(
-                                        MTS_CALL_API_URL,
-                                        headers={
-                                            "Authorization": f"Bearer {MTS_API_KEY}"
-                                        },
-                                        json={
-                                            "source": MTS_NUMBER,
-                                            "destination": user.phone_number.replace("+", ""),  
-                                            "service_id": MTS_CALL_SERVICE_ID
-                                        }
-                                    )
-                                    if response.status_code != 200:
-                                            raise Exception()
-                                except:
-                                    print("call error")
-
+                    notificate(anomalous_event, notification_types)
             elif search_pattern.search_type == "REGEX":
                 pass
             elif search_pattern.search_type == "COEFFICIENT":
@@ -119,12 +76,12 @@ def read_log_file_task(log_file_id: int) -> None:
     """
     log_file = LogFile.objects.get(id=log_file_id)
     with open(os.path.join("/outer", log_file.path[1:]), mode="r") as file:
-        if not log_file.last_positions:
-            file.seek(0, 2)
-        else:
-            file.seek(log_file.last_positions)
-        new_lines = file.readlines()
-        new_position = file.tell()
-        log_file.last_positions = new_position
-        log_file.save()
-        analyze_log_lines.delay(log_file.id, new_lines)
+        # if not log_file.last_positions:
+        #     file.seek(0, 2)
+        # else:
+        #     file.seek(log_file.last_positions)
+        lines = file.readlines()
+        # new_position = file.tell()
+        # log_file.last_positions = new_position
+        # log_file.save()
+        analyze_log_lines.delay(log_file.id, lines)

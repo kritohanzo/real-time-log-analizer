@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from logs.models import NotificationType
 
+
 class Command(BaseCommand):
     help = "create default notification types"
     default_notification_types = [
@@ -11,5 +12,13 @@ class Command(BaseCommand):
     ]
 
     def handle(self, *args, **options):
-        notification_types = [NotificationType(**fields) for fields in self.default_notification_types]
-        NotificationType.objects.bulk_create(notification_types)
+        print("START CREATION DEFAULT NOTIFICATION TYPES:", end=" ")
+        notification_types_exists = NotificationType.objects.filter(
+            method__in=[notification_type.get("method") for notification_type in self.default_notification_types]
+        ).exists()
+        if not notification_types_exists:
+            notification_types = [NotificationType(**fields) for fields in self.default_notification_types]
+            NotificationType.objects.bulk_create(notification_types)
+            print("CREATED")
+        else:
+            print("ALREADY EXISTS")

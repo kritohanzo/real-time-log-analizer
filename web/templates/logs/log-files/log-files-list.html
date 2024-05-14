@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
-{% block title %} Главная страница {% endblock %}
+{% block title %} Список лог-файлов {% endblock %}
 {% block header %} {% include 'includes/header.html' %} {% endblock %}
 {% block content %}
 <div class="container mt-5 text-center">
     <h2 class="mb-4">Список добавленных лог-файлов для постоянного сканирования</h2>
-    <a class="col-4 btn btn-outline-light mx-1 mb-4" href="{% url 'logs:log_file_add' %}">Добавить лог-файл</a>
+    {% if request.user.role in 'ADMIN,SPECIALIST' %}
+        <a class="col-4 btn btn-outline-light mx-1 mb-4" href="{% url 'logs:log_file_add' %}">Добавить лог-файл</a>
+    {% endif %}
     <table class="table table-striped table-dark table-bordered border-white align-middle">
         <thead>
             <tr>
@@ -29,8 +31,12 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_file_edit' log_file_id=log_file.id %}">Изменить</a>
-                    <a class="col-6 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_file_delete' log_file_id=log_file.id %}">Удалить</a>
+                    {% if request.user.role in 'ADMIN,SPECIALIST' %}
+                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_file_edit' log_file_id=log_file.id %}">Изменить</a>
+                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_file_delete' log_file_id=log_file.id %}">Удалить</a>
+                    {% else %}
+                        —
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
