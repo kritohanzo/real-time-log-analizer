@@ -8,7 +8,7 @@ from logs.tasks import read_log_file_task
 from qsstats import QuerySetStats
 from random import randint
 from django.utils.timezone import get_current_timezone
-from core.utils import notificate
+from core.utils import notificate_selector
 import json
 from zoneinfo import ZoneInfo
 from django.db.models import Count, F, QuerySet
@@ -31,7 +31,7 @@ class GenerateTestAnomalousEventView(views.View):
             search_patterns = anomalous_event.log_file.type.search_patterns.all()
             for search_pattern in search_patterns:
                 notification_types = search_pattern.notification_types.all()
-                notificate(anomalous_event, notification_types)
+                notificate_selector(anomalous_event, notification_types)
         return render(request, template_name="success.html", context={"message": "Вы успешно сгенерировали аномальное событие"})
 
 

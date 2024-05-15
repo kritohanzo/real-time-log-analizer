@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 import pathlib
 from main.settings import MTS_SMS_API_URL, MTS_API_KEY, MTS_NUMBER, MTS_CALL_API_URL, MTS_CALL_SERVICE_ID
 import requests
-from core.utils import notificate
+from core.utils import notificate_selector
 
 def prepare_lines(lines: list[str]) -> list[str]:
     """Подготавливает строки к анализу.
@@ -34,12 +34,11 @@ def analyze_log_lines(log_file_id: int, lines: list[str]) -> None:
     for line in prepared_lines:
         print(f'LOG FILE: {log_file} | SCAN LINE: "{line}"')
         for search_pattern in search_patterns:
-
             if search_pattern.search_type == "SIMPLE":
                 if search_pattern.pattern in line:
                     anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file)
                     notification_types = search_pattern.notification_types.all()
-                    notificate(anomalous_event, notification_types)
+                    notificate_selector(anomalous_event, notification_types)
             elif search_pattern.search_type == "REGEX":
                 pass
             elif search_pattern.search_type == "COEFFICIENT":
