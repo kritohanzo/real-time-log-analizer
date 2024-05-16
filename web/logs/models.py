@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.core.validators import MaxValueValidator, MinValueValidator
 from enum import Enum
 
 class SearchPatternTypeChoices(Enum):
@@ -50,6 +51,15 @@ class SearchPattern(models.Model):
     notification_types = models.ManyToManyField(
         NotificationType, through="SearchPatternNotificationType",
         verbose_name="Типы оповещений", related_name="search_patterns"
+    )
+    coefficient = models.FloatField(
+        verbose_name="Словарный коэффициент вхождения",
+        null=True,
+        default=None,
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(1)
+        ]
     )
 
     class Meta:

@@ -91,6 +91,13 @@ class SearchPatternForm(forms.ModelForm):
             attrs={"placeholder": "Выберите тип поиска", "class": "form-select"}
         ),
     )    
+    coefficient = forms.FloatField(
+        label="Коэффициент вхождения",
+        required=False,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Введите коэффициент вхождения", "class": "form-control"}
+        ),
+    )
     notification_types = forms.ModelMultipleChoiceField(
         queryset=NotificationType.objects.all(),
         label="Типы оповещений",
