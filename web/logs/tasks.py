@@ -7,6 +7,7 @@ import pathlib
 from main.settings import MTS_SMS_API_URL, MTS_API_KEY, MTS_NUMBER, MTS_CALL_API_URL, MTS_CALL_SERVICE_ID
 import requests
 from core.utils import notificate_selector
+import re
 
 def prepare_lines(lines: list[str]) -> list[str]:
     """Подготавливает строки к анализу.
@@ -40,9 +41,23 @@ def analyze_log_lines(log_file_id: int, lines: list[str]) -> None:
                     notification_types = search_pattern.notification_types.all()
                     notificate_selector(anomalous_event, notification_types)
             elif search_pattern.search_type == "REGEX":
-                pass
+                found = re.search(search_pattern.pattern, line)
+                if found:
+                    anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file)
+                    notification_types = search_pattern.notification_types.all()
+                    notificate_selector(anomalous_event, notification_types)
             elif search_pattern.search_type == "COEFFICIENT":
-                pass
+                words = search_pattern.pattern.split()
+                coefficient = search_pattern.coefficient
+                words_found = 0
+                words_count = len(words)
+                for word in words:
+                    if word in line:
+                        words_found += 1
+                if (words_found / words_count) >= coefficient:
+                    anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file)
+                    notification_types = search_pattern.notification_types.all()
+                    notificate_selector(anomalous_event, notification_types)
 
 @shared_task
 def read_log_files_task() -> None:

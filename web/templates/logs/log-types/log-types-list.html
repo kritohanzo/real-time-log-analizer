@@ -4,6 +4,27 @@
 {% block content %}
 <div class="container mt-5 text-center">
     <h2 class="mb-4">Список добавленных типов протоколов / ПО</h2>
+
+    <form class="col-12 mb-3 g-3" action="{% url 'logs:log_types_list' %}" method="post">
+        {% csrf_token %}
+
+        <div class="row">
+            {% for field in form %}
+                <div class="col-6 mb-2">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    <div>{{ field }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-center text-center">
+            <button type="submit" class="btn btn-outline-light col-2 mt-2">
+                Поиск
+            </button>
+        </div>
+
+    </form>
+
     {% if request.user.role in 'ADMIN,SPECIALIST' %}
         <a class="col-4 btn btn-outline-light mx-1 mb-4" href="{% url 'logs:log_type_add' %}">Добавить тип протокола / ПО</a>
     {% endif %}

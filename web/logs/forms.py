@@ -173,48 +173,97 @@ class AnomalousEventSearchForm(forms.Form):
     )
 
 
-# class AnomalousEventSearchForm(forms.Form):
-#     text = forms.CharField(
-#         label="Текст события",
-#         max_length=255,
-#         required=False,
-#         widget=forms.TextInput(
-#             attrs={"placeholder": "Введите текст события", "class": "form-control"}
-#         ),
-#     )
-#     start_datetime = forms.DateTimeField(
-#         label="Начало периода",
-#         required=False,
-#         widget=forms.TextInput(
-#             attrs={
-#                 "placeholder": "Выберите начала периода",
-#                 "class": "form-control",
-#                 "type": "datetime-local",
-#                 "value": "—"
-#             }
-#         ),
-#     )
-#     end_datetime = forms.DateTimeField(
-#         label="Конец периода",
-#         required=False,
-#         widget=forms.TextInput(
-#             attrs={
-#                 "placeholder": "Выберите начала периода",
-#                 "class": "form-control",
-#                 "type": "datetime-local",
-#                 "value": "—"
-#             }
-#         ),
-#     )
-#     log_file = forms.ModelChoiceField(
-#         queryset=LogFile.objects.filter(one_time_scan=False),
-#         required=False,
-#         label="Лог-файл",
-#         widget=forms.Select(
-#             attrs={"class": "form-control"}
-#         ),
-#         empty_label="Любой"
-#     )
+class LogFileSearchForm(forms.Form):
+    name = forms.CharField(
+        label="Описание",
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Введите описание", "class": "form-control"}
+        ),
+    )
+    path = forms.CharField(
+        label="Путь",
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Введите путь", "class": "form-control"}
+        ),
+    )
+    log_type = forms.ModelChoiceField(
+        queryset=LogType.objects.all(),
+        required=False,
+        label="Тип протокола / ПО",
+        widget=forms.Select(
+            attrs={"class": "form-control"}
+        ),
+        empty_label="Любой"
+    )
+    search_pattern = forms.ModelChoiceField(
+        queryset=SearchPattern.objects.all(),
+        required=False,
+        label="Поисковый паттерн",
+        widget=forms.Select(
+            attrs={"class": "form-control"}
+        ),
+        empty_label="Любой"
+    )
+
+
+class LogTypeSearchForm(forms.Form):
+    name = forms.CharField(
+        label="Описание",
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Введите описание", "class": "form-control"}
+        ),
+    )
+    search_pattern = forms.ModelChoiceField(
+        queryset=SearchPattern.objects.all(),
+        required=False,
+        label="Поисковый паттерн",
+        widget=forms.Select(
+            attrs={"class": "form-control"}
+        ),
+        empty_label="Любой"
+    )
+
+
+class SearchPatternSearchForm(forms.Form):
+    name = forms.CharField(
+        label="Описание",
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Введите описание", "class": "form-control"}
+        ),
+    )
+    pattern = forms.CharField(
+        label="Паттерн",
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Введите паттерн", "class": "form-control"}
+        ),
+    )
+    search_type = forms.ChoiceField(
+        choices=SearchPatternTypeChoices.choices(),
+        label="Тип поиска",
+        required=False,
+        widget=forms.Select(
+            attrs={"placeholder": "Выберите тип поиска", "class": "form-select"}
+        ),
+    )    
+    notification_type = forms.ModelChoiceField(
+        queryset=NotificationType.objects.all(),
+        label="Тип оповещений",
+        required=False,
+        widget=forms.Select(
+            attrs={"placeholder": "Выберите тип оповещений", "class": "form-select"}
+        ),
+        empty_label="Любой"
+    )  
 
 
 class OneTimeScanAnomalousEventSearchForm(forms.Form):

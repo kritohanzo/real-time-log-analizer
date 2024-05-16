@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView
 from django import views
 import datetime
-from logs.forms import LogFileForm, LogTypeForm, SearchPatternForm, AnomalousEventSearchForm, OneTimeScanAnomalousEventSearchForm
+from logs.forms import LogFileForm, LogTypeForm, SearchPatternForm, AnomalousEventSearchForm, OneTimeScanAnomalousEventSearchForm, LogFileSearchForm, LogTypeSearchForm, SearchPatternSearchForm
 from logs.models import LogFile, LogType, SearchPattern, AnomalousEvent, NotificationType
 from logs.tasks import read_log_file_task
 from qsstats import QuerySetStats
@@ -82,7 +82,6 @@ class AnomalousEventListView(views.View):
 
     def post(self, request, *args, **kwargs):
         form = AnomalousEventSearchForm(request.POST)
-        anomalous_events = AnomalousEvent.objects.filter(log_file__one_time_scan=False)
         if not form.is_valid():
             return self.get(self, request, *args, **kwargs)
         text, start_datetime, end_datetime, log_file, log_type, search_pattern = form.cleaned_data.values()
@@ -94,9 +93,7 @@ class AnomalousEventListView(views.View):
         if log_type:
             anomalous_events = anomalous_events.filter(log_file__type=log_type)
         if search_pattern:
-            log_types = search_pattern.log_types.all() 
-            if log_types:
-                anomalous_events = anomalous_events.filter(log_file__type__in=log_types)
+            anomalous_events = anomalous_events.filter(log_file__type__search_patterns=search_pattern)
         return render(request, template_name="logs/anomalous-events/anomalous-events-list.html", context={"anomalous_events": anomalous_events, "form": form})
 
 
@@ -113,7 +110,25 @@ class AnomalousEventDeleteView(views.View):
 class LogFileListView(views.View):
     def get(self, request, *args, **kwargs):
         log_files = LogFile.objects.filter(one_time_scan=False)
-        return render(request, template_name="logs/log-files/log-files-list.html", context={"log_files": log_files})
+        form = LogFileSearchForm()
+        return render(request, template_name="logs/log-files/log-files-list.html", context={"log_files": log_files, "form": form})
+    
+    def post(self, request, *args, **kwargs):
+        form = LogFileSearchForm(request.POST)
+        if not form.is_valid():
+            return self.get(self, request, *args, **kwargs)
+        log_files = LogFile.objects.filter(one_time_scan=False)
+        name, path, log_type, search_pattern = form.cleaned_data.values()
+        print(form.cleaned_data)
+        if name:
+            log_files = log_files.filter(name__icontains=name)
+        if path:
+            log_files = log_files.filter(path__icontains=path)
+        if log_type:
+            log_files = log_files.filter(type=log_type)
+        if search_pattern:
+            log_files = log_files.filter(type__search_patterns=search_pattern)
+        return render(request, template_name="logs/log-files/log-files-list.html", context={"log_files": log_files, "form": form})
 
 
 class LogFileAddView(views.View):
@@ -129,12 +144,6 @@ class LogFileAddView(views.View):
         return render(request, template_name="success.html", context={"message": "Вы успеншо добавили лог-файл"})
 
 
-# class LogFileDetailView(views.View):
-#     def get(self, request, log_file_id, *args, **kwargs):
-#         log_file = get_object_or_404(LogFile, id=log_file_id)
-#         return render(request, template_name="logs/log-files/log-files-list.html", context={"log_file": log_file})
-
-
 class LogFileEditView(views.View):
     def get(self, request, log_file_id, *args, **kwargs):
         log_file = get_object_or_404(LogFile, id=log_file_id)
@@ -147,14 +156,14 @@ class LogFileEditView(views.View):
         if not form.is_valid():
             return render(request, template_name="logs/log-files/log-file-form.html", context={"form": form, "is_edit": True})
         form.save()
-        return render(request, template_name="success.html", context={"message": "Вы успеншо изменили лог-файл"})
+        return render(request, template_name="success.html", context={"message": "Вы успешно изменили лог-файл"})
 
 
 class LogFileDeleteView(views.View):
     def get(self, request, log_file_id, *args, **kwargs):
         log_file = get_object_or_404(LogFile, id=log_file_id)
         log_file.delete()
-        return render(request, template_name="success.html", context={"message": "Вы успеншо удалили лог-файл"})
+        return render(request, template_name="success.html", context={"message": "Вы успешно удалили лог-файл"})
 
 
 # Log Type Views
@@ -163,7 +172,19 @@ class LogFileDeleteView(views.View):
 class LogTypeListView(views.View):
     def get(self, request, *args, **kwargs):
         log_types = LogType.objects.all()
-        return render(request, template_name="logs/log-types/log-types-list.html", context={"log_types": log_types})
+        form = LogTypeSearchForm()
+        return render(request, template_name="logs/log-types/log-types-list.html", context={"log_types": log_types, "form": form})
+    def post(self, request, *args, **kwargs):
+        form = LogTypeSearchForm(request.POST)
+        if not form.is_valid():
+            return self.get(self, request, *args, **kwargs)
+        name, search_pattern = form.cleaned_data.values()
+        log_types = LogType.objects.all()
+        if name:
+            log_types = log_types.filter(name__icontains=name)
+        if search_pattern:
+            log_types = log_types.filter(search_patterns=search_pattern)
+        return render(request, template_name="logs/log-types/log-types-list.html", context={"log_types": log_types, "form": form})
     
 
 class LogTypeAddView(views.View):
@@ -211,7 +232,24 @@ class LogTypeDeleteView(views.View):
 class SearchPatternListView(views.View):
     def get(self, request, *args, **kwargs):
         search_patterns = SearchPattern.objects.all()
-        return render(request, template_name="logs/search-patterns/search-patterns-list.html", context={"search_patterns": search_patterns})
+        form = SearchPatternSearchForm()
+        return render(request, template_name="logs/search-patterns/search-patterns-list.html", context={"search_patterns": search_patterns, "form": form})
+    
+    def post(self, request, *args, **kwargs):
+        form = SearchPatternSearchForm(request.POST)
+        if not form.is_valid():
+            return self.get(self, request, *args, **kwargs)
+        search_patterns = SearchPattern.objects.all()
+        name, pattern, search_type, notification_type = form.cleaned_data.values()
+        if name:
+            search_patterns = search_patterns.filter(name__icontains=name)
+        if pattern:
+            search_patterns = search_patterns.filter(pattern__icontains=pattern)
+        if search_type:
+            search_patterns = search_patterns.filter(search_type=search_type)
+        if notification_type:
+            search_patterns = search_patterns.filter(notification_types=notification_type)
+        return render(request, template_name="logs/search-patterns/search-patterns-list.html", context={"search_patterns": search_patterns, "form": form}) 
     
 
 class SearchPatternAddView(views.View):

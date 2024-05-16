@@ -3,6 +3,11 @@ from main.settings import MTS_SMS_API_URL, MTS_API_KEY, MTS_NUMBER, MTS_CALL_API
 import requests
 
 def email_notificate(anomalous_event, users):
+    """Посылает письмо на почту пользователям.
+    
+    Пробегает по каждому пользователю и рассылает письмо всем,
+    у кого указана почта в списке пользователей.
+    """
     recipient_list = [user.email for user in users]
     subject = f'Аномальное событие в лог-файле'
     message = f'В лог-файле "{anomalous_event.log_file}" произошло аномальное событие: "{anomalous_event.text}"'
@@ -14,6 +19,11 @@ def email_notificate(anomalous_event, users):
         print("ERROR")
 
 def sms_notificate(anomalous_event, users):
+    """Посылает SMS пользователям.
+    
+    Пробегает по каждому пользователю и рассылает SMS всем,
+    у кого указан номер телефона в списке пользователей.
+    """
     text = f'AN. EV. "{anomalous_event.log_file}": {anomalous_event.text}'
     for user in users:
         destination = user.phone_number.replace("+", "")
@@ -37,6 +47,11 @@ def sms_notificate(anomalous_event, users):
             print("ERROR")
 
 def call_notificate(users):
+    """Посылает звонок пользователям.
+    
+    Пробегает по каждому пользователю и рассылает звонки всем,
+    у кого указан номер телефона в списке пользователей.
+    """
     for user in users:
         destination = user.phone_number.replace("+", "")
         print(f"START CALL NOTIFICATION TO {destination}:", end=" ")
@@ -59,6 +74,12 @@ def call_notificate(users):
             print("ERROR")
 
 def notificate_selector(anomalous_event, notification_types):
+    """Рассылает все возможные виды оповещений.
+    
+    Пробегает по каждому типу оповещения и,
+    опираясь на аномальное событие, рассылает
+    все возможные оповещения.
+    """
     for notification_type in notification_types:
         if notification_type.method == "email":
             users = notification_type.users.filter(email__isnull=False).exclude(email__exact='')
