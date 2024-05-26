@@ -6,6 +6,7 @@ from logs.forms import LogFileForm, LogTypeForm, SearchPatternForm, AnomalousEve
 from logs.models import LogFile, LogType, SearchPattern, AnomalousEvent, NotificationType
 from logs.tasks import read_log_file_task
 from qsstats import QuerySetStats
+from django.core.paginator import Paginator
 from random import randint
 from django.utils.timezone import get_current_timezone
 from core.utils import notificate_selector
@@ -41,7 +42,7 @@ class MainPageView(views.View):
         form = AnomalousEventSearchForm()
         start_datetime = datetime.datetime.now(tz=ZoneInfo(key='Asia/Yekaterinburg')).replace(hour=0, minute=0, second=0, microsecond=0)
         end_datetime = start_datetime + datetime.timedelta(days=1)
-        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False)
+        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False, count_of_events=0)
         qsstats = QuerySetStats(anomalous_events, date_field='detected_datetime')
         logs_metrics = qsstats.time_series(start_datetime, end_datetime, interval='minutes')
         logs_metrics = list(filter(lambda x: x[1] > 0 or x[0].minute % 30 == 0, logs_metrics))
@@ -53,7 +54,7 @@ class MainPageView(views.View):
         if not form.is_valid():
             return self.get(self, request, *args, **kwargs)
         text, start_datetime, end_datetime, log_file, log_type, search_pattern = form.cleaned_data.values()
-        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False)
+        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False, count_of_events=0)
         if text:
             anomalous_events = anomalous_events.filter(text__icontains=text)
         if log_file:
@@ -76,16 +77,18 @@ class MainPageView(views.View):
 
 class AnomalousEventListView(views.View):
     def get(self, request, *args, **kwargs):
-        anomalous_events = AnomalousEvent.objects.filter(log_file__one_time_scan=False)
+        anomalous_events = AnomalousEvent.objects.filter(log_file__one_time_scan=False, count_of_events=0)
+        paginator = Paginator(anomalous_events, 50)
+        page = paginator.get_page(self.request.GET.get('page'))
         form = AnomalousEventSearchForm()
-        return render(request, template_name="logs/anomalous-events/anomalous-events-list.html", context={"anomalous_events": anomalous_events, "form": form})
+        return render(request, template_name="logs/anomalous-events/anomalous-events-list.html", context={"form": form, "page": page})
 
     def post(self, request, *args, **kwargs):
         form = AnomalousEventSearchForm(request.POST)
         if not form.is_valid():
             return self.get(self, request, *args, **kwargs)
         text, start_datetime, end_datetime, log_file, log_type, search_pattern = form.cleaned_data.values()
-        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False)
+        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False, count_of_events=0)
         if text:
             anomalous_events = anomalous_events.filter(text__icontains=text)
         if log_file:
@@ -94,7 +97,9 @@ class AnomalousEventListView(views.View):
             anomalous_events = anomalous_events.filter(log_file__type=log_type)
         if search_pattern:
             anomalous_events = anomalous_events.filter(log_file__type__search_patterns=search_pattern)
-        return render(request, template_name="logs/anomalous-events/anomalous-events-list.html", context={"anomalous_events": anomalous_events, "form": form})
+        paginator = Paginator(anomalous_events, 50)
+        page = paginator.get_page(self.request.GET.get('page'))
+        return render(request, template_name="logs/anomalous-events/anomalous-events-list.html", context={"form": form, "page": page})
 
 
 class AnomalousEventDeleteView(views.View):
@@ -324,15 +329,19 @@ class OneTimeScanDeleteView(views.View):
 class OneTimeScanAnomalousEventListView(views.View):
     def get(self, request, log_file_id, *args, **kwargs):
         form = OneTimeScanAnomalousEventSearchForm()
-        anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id)
-        return render(request, template_name="logs/one-time-scans/one-time-scan-anomalous-events-list.html", context={"anomalous_events": anomalous_events, "form": form, "log_file_id": log_file_id})
+        anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id, count_of_events=0)
+        paginator = Paginator(anomalous_events, 50)
+        page = paginator.get_page(self.request.GET.get('page'))
+        return render(request, template_name="logs/one-time-scans/one-time-scan-anomalous-events-list.html", context={"page": page, "form": form, "log_file_id": log_file_id})
     
     def post(self, request, log_file_id, *args, **kwargs):
         form = OneTimeScanAnomalousEventSearchForm(request.POST)
         if not form.is_valid():
             return self.get(self, request, *args, **kwargs)
-        anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id)
+        anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id, count_of_events=0)
         text = form.cleaned_data.get('text')
         if text:
             anomalous_events = anomalous_events.filter(text__icontains=text)
-        return render(request, template_name="logs/one-time-scans/one-time-scan-anomalous-events-list.html", context={"anomalous_events": anomalous_events, "form": form, "log_file_id": log_file_id})
+        paginator = Paginator(anomalous_events, 50)
+        page = paginator.get_page(self.request.GET.get('page'))
+        return render(request, template_name="logs/one-time-scans/one-time-scan-anomalous-events-list.html", context={"page": page, "form": form, "log_file_id": log_file_id})

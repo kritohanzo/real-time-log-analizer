@@ -42,20 +42,37 @@
 <script>
     $("label[for='id_notification_types_0'] input").attr("disabled", true);
 
-    var coefficientHidden = true;
+    var coefficientHidden = !($('#id_search_type').find(":selected").val() == "COEFFICIENT");
+    var countOfEventsHidden = !$('#id_counter').is(':checked');
+    var periodOfEventsHidden = !$('#id_counter').is(':checked');
     $("label[for='id_coefficient']").parent().attr("hidden", coefficientHidden);    
+    $("label[for='id_count_of_events']").parent().attr("hidden", countOfEventsHidden);    
+    $("label[for='id_period_of_events']").parent().attr("hidden", periodOfEventsHidden);    
 
     function changeHiddenCoefficient () {
         var selectedOption = $('#id_search_type').find(":selected").val();
         if (selectedOption == "COEFFICIENT"){
             coefficientHidden = false;
         } else {
-            coefficientValue = $('#id_coefficient').val('');
+            $('#id_coefficient').val('');
             coefficientHidden = true;
         }
-        $("label[for='id_coefficient']").parent().attr("hidden", coefficientHidden);    
+        $("label[for='id_coefficient']").parent().attr("hidden", coefficientHidden);       
+    }
+
+    function changeHiddenCounter () {
+        countOfEventsHidden = !countOfEventsHidden;
+        periodOfEventsHidden = !periodOfEventsHidden;
+        if (countOfEventsHidden & periodOfEventsHidden) {
+            $('#id_count_of_events').val('');
+            $('#id_period_of_events').val('');
+        }
+        $("label[for='id_count_of_events']").parent().attr("hidden", countOfEventsHidden);    
+        $("label[for='id_period_of_events']").parent().attr("hidden", periodOfEventsHidden);    
     }
 
     $("#id_search_type").on("change", changeHiddenCoefficient);
+    $("#id_counter").on("change", changeHiddenCounter);
+
 </script>
 {% endblock %}

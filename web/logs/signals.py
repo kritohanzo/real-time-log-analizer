@@ -19,7 +19,7 @@ def notify_users(sender, instance, *args, **kwargs):
     находятся на странице /logs/, в том случае, если аномальное событие
     не пренадлежит файлу для одноразового сканирования.
     """
-    if instance.log_file.one_time_scan:
+    if instance.log_file.one_time_scan or instance.count_of_events != 0:
         return
 
     message = {

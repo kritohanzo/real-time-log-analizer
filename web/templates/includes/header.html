@@ -1,6 +1,6 @@
 <div class="container-fluid text-center py-2">
     <div class="d-flex justify-content-between">
-        <div class="col-6 d-flex justify-content-start">
+        <div class="col-6 d-flex flex-row justify-content-start">
             {% if request.user.is_authenticated %}
                 <a class="col-0.5 btn btn-outline-light mx-1" href="{% url 'logs:main_page' %}">«</i></a>
                 <a class="col-3 btn btn-outline-light mx-1" href="{% url 'logs:anomalous_events_list' %}">Аномальные события</a>
@@ -12,9 +12,9 @@
         </div>
         <div class="col-3 d-flex justify-content-end">
             
-            {% if request.user.role in 'ADMIN,SPECIALIST' %}
+            <!-- {% if request.user.role in 'ADMIN,SPECIALIST' %}
                 <a class="col-1 btn btn-outline-light mx-1" href="{% url 'logs:generate_test_anomalous_event' %}">▲</a>
-            {% endif %}
+            {% endif %} -->
 
             {% if request.user.role == 'ADMIN' %}
                 <a class="col-5 btn btn-outline-light mx-1" href="{% url 'users:users_list' %}">Пользователи системы</a>

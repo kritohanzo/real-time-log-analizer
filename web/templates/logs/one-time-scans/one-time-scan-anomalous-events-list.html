@@ -24,6 +24,7 @@
         </form>
     </div>
 
+    {% include 'includes/paginator.html' %}
     <table class="table table-striped table-dark table-bordered border-white align-middle col-12">
         <thead>
             <tr>
@@ -58,6 +59,8 @@
             {% endfor %}
         </tbody>
     </table>
+    {% include 'includes/paginator.html' %}
+    
 </div>
 {% include 'includes/anchor_finder.html' %}
 {% endblock %}

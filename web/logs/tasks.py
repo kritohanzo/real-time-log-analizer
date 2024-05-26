@@ -4,10 +4,12 @@ from users.models import User
 import os
 from django.core.mail import send_mail
 import pathlib
+import datetime
 from main.settings import MTS_SMS_API_URL, MTS_API_KEY, MTS_NUMBER, MTS_CALL_API_URL, MTS_CALL_SERVICE_ID
 import requests
 from core.utils import notificate_selector
 import re
+from zoneinfo import ZoneInfo
 
 def prepare_lines(lines: list[str]) -> list[str]:
     """Подготавливает строки к анализу.
@@ -32,18 +34,61 @@ def analyze_log_lines(log_file_id: int, lines: list[str]) -> None:
     log_file = LogFile.objects.get(id=log_file_id)
     log_file_type = log_file.type
     search_patterns = log_file_type.search_patterns.all()
+    datetime_regex_pattern = r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
+    ip_regex_pattern = r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"
     for line in prepared_lines:
         print(f'LOG FILE: {log_file} | SCAN LINE: "{line}"')
+
+        datetime_of_line = re.search(datetime_regex_pattern, line)
+        if datetime_of_line:
+            datetime_end_slice = datetime_of_line.end()
+            line = line[datetime_end_slice:]
+            datetime_of_line = datetime.datetime.strptime(datetime_of_line.group(0), "%Y-%m-%d %H:%M:%S").replace(tzinfo=ZoneInfo(key='Asia/Yekaterinburg'))
+        
+        ip_of_line = re.search(ip_regex_pattern, line)
+        if ip_of_line:
+            ip_of_line = ip_of_line.group(0)
+        print(ip_of_line)
+
         for search_pattern in search_patterns:
             if search_pattern.search_type == "SIMPLE":
                 if search_pattern.pattern in line:
-                    anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file)
-                    notification_types = search_pattern.notification_types.all()
-                    notificate_selector(anomalous_event, notification_types)
+                    if search_pattern.counter:
+                        anomalous_event, created = AnomalousEvent.objects.get_or_create(
+                            text__icontains=ip_of_line, log_file=log_file,
+                            count_of_events__gt=0,
+                            count_of_events__lt=search_pattern.count_of_events,
+                        )
+
+                        if created:
+                            anomalous_event.text = line
+                            anomalous_event.count_of_events = 1
+                            anomalous_event.fact_datetime = datetime_of_line
+                        else:
+                            # if anomalous_event.fact_datetime + datetime.timedelta(hours=search_pattern.period_of_events.hour, minutes=search_pattern.period_of_events.minute, seconds=search_pattern.period_of_events.second) > datetime.datetime.now(tz=ZoneInfo(key='Asia/Yekaterinburg')):
+                            if anomalous_event.fact_datetime + datetime.timedelta(hours=search_pattern.period_of_events.hour, minutes=search_pattern.period_of_events.minute, seconds=search_pattern.period_of_events.second) > datetime_of_line:
+                                anomalous_event.count_of_events += 1
+                            else:
+                                anomalous_event.delete()
+                                continue
+
+
+                        if anomalous_event.count_of_events >= search_pattern.count_of_events:
+                            anomalous_event.count_of_events = 0
+                            notification_types = search_pattern.notification_types.all()
+                            notificate_selector(anomalous_event, notification_types)
+
+                        anomalous_event.save()
+
+                    else:
+                        anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file, fact_datetime=datetime_of_line, count_of_events=0)
+                        notification_types = search_pattern.notification_types.all()
+                        notificate_selector(anomalous_event, notification_types)
+
             elif search_pattern.search_type == "REGEX":
                 found = re.search(search_pattern.pattern, line)
                 if found:
-                    anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file)
+                    anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file, fact_datetime=datetime_of_line)
                     notification_types = search_pattern.notification_types.all()
                     notificate_selector(anomalous_event, notification_types)
             elif search_pattern.search_type == "COEFFICIENT":
@@ -55,9 +100,47 @@ def analyze_log_lines(log_file_id: int, lines: list[str]) -> None:
                     if word in line:
                         words_found += 1
                 if (words_found / words_count) >= coefficient:
-                    anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file)
-                    notification_types = search_pattern.notification_types.all()
-                    notificate_selector(anomalous_event, notification_types)
+
+                    if search_pattern.counter:
+                        anomalous_event, created = AnomalousEvent.objects.get_or_create(
+                            text__icontains=ip_of_line, log_file=log_file,
+                            count_of_events__gt=0,
+                            count_of_events__lt=search_pattern.count_of_events,
+                        )
+                        print(created)
+                        print(anomalous_event)
+
+                        if created:
+                            anomalous_event.text = line
+                            anomalous_event.count_of_events = 1
+                            anomalous_event.fact_datetime = datetime_of_line
+                        else:
+                            # if anomalous_event.fact_datetime + datetime.timedelta(hours=search_pattern.period_of_events.hour, minutes=search_pattern.period_of_events.minute, seconds=search_pattern.period_of_events.second) > datetime.datetime.now(tz=ZoneInfo(key='Asia/Yekaterinburg')):
+                            if anomalous_event.fact_datetime + datetime.timedelta(hours=search_pattern.period_of_events.hour, minutes=search_pattern.period_of_events.minute, seconds=search_pattern.period_of_events.second) > datetime_of_line:
+                                anomalous_event.count_of_events += 1
+                                print("+ COUNT")
+                            else:
+                                print("- DELETE")
+                                anomalous_event.delete()
+                                continue
+
+
+                        if anomalous_event.count_of_events >= search_pattern.count_of_events:
+                            print('! MATCH')
+                            anomalous_event.count_of_events = 0
+                            notification_types = search_pattern.notification_types.all()
+                            notificate_selector(anomalous_event, notification_types)
+
+                        anomalous_event.save()
+
+                    else:
+                        anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file, fact_datetime=datetime_of_line, count_of_events=0)
+                        notification_types = search_pattern.notification_types.all()
+                        notificate_selector(anomalous_event, notification_types)
+
+                    # anomalous_event = AnomalousEvent.objects.create(text=line, log_file=log_file, fact_datetime=datetime_of_line)
+                    # notification_types = search_pattern.notification_types.all()
+                    # notificate_selector(anomalous_event, notification_types)
 
 @shared_task
 def read_log_files_task() -> None:

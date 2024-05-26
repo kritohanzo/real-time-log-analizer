@@ -2,7 +2,7 @@
 {% block title %} Список поисковых паттернов {% endblock %}
 {% block header %} {% include 'includes/header.html' %} {% endblock %}
 {% block content %}
-<div class="container mt-5 text-center">
+<div class="mx-5 mt-5 text-center">
     <h2 class="mb-4">Список добавленных поисковых паттернов</h2>
 
     <form class="col-12 mb-3 g-3" action="{% url 'logs:search_patterns_list' %}" method="post">
@@ -29,7 +29,7 @@
         <a class="col-4 btn btn-outline-light mx-1 mb-4" href="{% url 'logs:search_pattern_add' %}">Добавить поисковый паттерн</a>
     {% endif %}
     <table class="table table-striped table-dark table-bordered border-white align-middle">
-        <thead>
+        <thead class="align-middle">
             <tr>
                 <th scope="col">ID</th>
                 <th scope="col">Описание</th>
@@ -53,8 +53,8 @@
                 </td>
                 <td>
                     {% if request.user.role in 'ADMIN,SPECIALIST' %}
-                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_edit' search_pattern_id=search_pattern.id %}">Изменить</a>
-                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_delete' search_pattern_id=search_pattern.id %}">Удалить</a>
+                        <a class="col-4 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_edit' search_pattern_id=search_pattern.id %}">Изменить</a>
+                        <a class="col-4 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_delete' search_pattern_id=search_pattern.id %}">Удалить</a>
                     {% else %}
                         —
                     {% endif %}

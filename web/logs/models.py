@@ -52,6 +52,10 @@ class SearchPattern(models.Model):
         NotificationType, through="SearchPatternNotificationType",
         verbose_name="Типы оповещений", related_name="search_patterns"
     )
+    counter = models.BooleanField(
+        verbose_name="Повторяющееся событие", default=False
+    )
+    # only for coefficient search type
     coefficient = models.FloatField(
         verbose_name="Словарный коэффициент вхождения",
         null=True,
@@ -60,6 +64,15 @@ class SearchPattern(models.Model):
             MinValueValidator(0),
             MaxValueValidator(1)
         ]
+    )
+    # only for count events if counter field is True
+    count_of_events = models.IntegerField(
+        verbose_name="Количество событий до оповещения",
+        null=True, default=0
+    )
+    period_of_events = models.TimeField(
+        verbose_name="Период для подсчёта количества событий до оповещения",
+        null=True, default=None
     )
 
     class Meta:
@@ -157,7 +170,7 @@ class LogFile(models.Model):
 
 class AnomalousEvent(models.Model):
     text = models.CharField(
-        verbose_name="Текст", max_length=255
+        verbose_name="Текст", max_length=2048
     )
     fact_datetime = models.DateTimeField(
         verbose_name="Фактическое дата и время", null=True, blank=True
@@ -165,16 +178,16 @@ class AnomalousEvent(models.Model):
     detected_datetime = models.DateTimeField(
         verbose_name="Дата и время обнаружения", auto_now_add=True
     )
-    # detected_search_pattern = models.ForeignKey(
-    #     SearchPattern, related_name="anomalous_events",
-    #     on_delete=models.SET_NULL, null=True,
-    #     verbose_name="Поисковый паттерн, обнаруживший событие"
-    # )
     log_file = models.ForeignKey(
         LogFile,
         on_delete=models.SET_NULL,
         null=True,
         related_name="anomalous_log_events",
+    )
+    count_of_events = models.IntegerField(
+        verbose_name="Количество событий в рамках периода",
+        null=True,
+        default=None
     )
 
     class Meta:

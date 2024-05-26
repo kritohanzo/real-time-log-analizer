@@ -75,7 +75,6 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = "username"
-    # REQUIRED_FIELDS = ["name", "surname", "patronymic", "email"]
     EMAIL_FIELD = "email"
 
     def clean(self):

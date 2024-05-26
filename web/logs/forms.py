@@ -30,13 +30,6 @@ class LogFileForm(forms.ModelForm):
         ),
         empty_label="—"
     )
-    # one_time_scan = forms.CharField(
-    #     label="Одноразовое сканирование",
-    #     required=False,
-    #     widget=forms.CheckboxInput(
-    #         attrs={"placeholder": "Выберите тип поиска", "class": "form-check form-switch form-check-input"}
-    #     ),
-    # )
     
     class Meta:
         model = LogFile
@@ -91,11 +84,40 @@ class SearchPatternForm(forms.ModelForm):
             attrs={"placeholder": "Выберите тип поиска", "class": "form-select"}
         ),
     )    
+    counter = forms.BooleanField(
+        label="Повторяющееся событие",
+        required=False,
+        widget=forms.CheckboxInput(
+            attrs={
+                "placeholder": "Повторяющееся событие",
+                "class": "form-check form-switch form-check-input",
+            }
+        ),
+    )
     coefficient = forms.FloatField(
         label="Коэффициент вхождения",
         required=False,
         widget=forms.TextInput(
             attrs={"placeholder": "Введите коэффициент вхождения", "class": "form-control"}
+        ),
+    )
+    count_of_events = forms.IntegerField(
+        label="Количество событий до оповещения",
+        required=False,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Введите количество событий до оповещения", "class": "form-control"}
+        ),
+    )
+    period_of_events = forms.TimeField(
+        label="Период для подсчёта количества событий до оповещения",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Введите период для подсчёта количества событий до оповещения",
+                "class": "form-control",
+                "type": "time",
+                "step": "1"
+            }
         ),
     )
     notification_types = forms.ModelMultipleChoiceField(
@@ -110,7 +132,7 @@ class SearchPatternForm(forms.ModelForm):
     
     class Meta:
         model = SearchPattern
-        fields = ("name", "pattern", "search_type", "notification_types")
+        fields = ("name", "pattern", "search_type",  "counter", "coefficient", "count_of_events", "period_of_events", "notification_types")
 
 
 class AnomalousEventSearchForm(forms.Form):
