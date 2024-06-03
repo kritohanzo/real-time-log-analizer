@@ -39,7 +39,7 @@ class SearchPattern(models.Model):
         verbose_name="Краткое понятное название или описание"
     )
     pattern = models.CharField(
-        verbose_name="Поисковый паттерн", max_length=255
+        verbose_name="Поисковый паттерн", max_length=4096
     )
     search_type = models.CharField(
         verbose_name="Тип поиска",
@@ -50,7 +50,7 @@ class SearchPattern(models.Model):
     )
     notification_types = models.ManyToManyField(
         NotificationType, through="SearchPatternNotificationType",
-        verbose_name="Типы оповещений", related_name="search_patterns"
+        verbose_name="Типы оповещений", related_name="search_patterns",
     )
     counter = models.BooleanField(
         verbose_name="Повторяющееся событие", default=False

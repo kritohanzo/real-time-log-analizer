@@ -17,8 +17,7 @@ class Command(BaseCommand):
             method__in=[notification_type.get("method") for notification_type in self.default_notification_types]
         ).exists()
         if not notification_types_exists:
-            notification_types = [NotificationType(**fields) for fields in self.default_notification_types]
-            NotificationType.objects.bulk_create(notification_types)
+            NotificationType.objects.bulk_create([NotificationType(**fields) for fields in self.default_notification_types])
             print("CREATED")
         else:
             print("ALREADY EXISTS")

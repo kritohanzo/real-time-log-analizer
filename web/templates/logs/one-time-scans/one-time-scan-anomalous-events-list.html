@@ -37,7 +37,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for anomalous_event in anomalous_events %}
+            {% for anomalous_event in page %}
             <tr>
                 <th scope="row" id="{{ anomalous_event.id }}">{{ anomalous_event.id }}</th>
                 <td>{{ anomalous_event.text }}</td>
