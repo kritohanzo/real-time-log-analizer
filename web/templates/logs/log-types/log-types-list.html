@@ -53,8 +53,8 @@
                 </td>
                 <td>
                     {% if request.user.role in 'ADMIN,SPECIALIST' %}
-                        <a class="col-3 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_type_edit' log_type_id=log_type.id %}">Изменить</a>
-                        <a class="col-3 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_type_delete' log_type_id=log_type.id %}">Удалить</a>
+                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_type_edit' log_type_id=log_type.id %}">Изменить</a>
+                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:log_type_delete' log_type_id=log_type.id %}">Удалить</a>
                     {% else %}
                         —
                     {% endif %}

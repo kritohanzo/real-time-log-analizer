@@ -58,13 +58,14 @@ class Command(BaseCommand):
         # DNS
         {
             "name": "DNS DOS", "pattern": "PACKET Rcv", "search_type": "COEFFICIENT", "counter": True,
-            "coefficient": 1, "count_of_events": 10, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "coefficient": 1, "count_of_events": 30, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
         },
         {
             "name": "DNS DOMAIN ZONE UPDATE", "pattern": " R U ", "search_type": "SIMPLE"
         },
         {
-            "name": "DNS SERVFAIL ERROR", "pattern": "SERVFAIL", "search_type": "SIMPLE"
+            "name": "DNS SERVFAIL ERROR", "pattern": "SERVFAIL", "search_type": "SIMPLE", "counter": True,
+            "count_of_events": 15, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
         },
         # SMTP
         {

@@ -44,7 +44,7 @@
             <tr>
                 <th scope="row" id="{{ search_pattern.id }}">{{ search_pattern.id }}</th>
                 <td>{{ search_pattern.name }}</td>
-                <td>{{ search_pattern.pattern }}</td>
+                <td class="col-6">{{ search_pattern.pattern }}</td>
                 <td>{{ search_pattern.get_search_type_display }}</td>
                 <td>
                     {% for notification_type in search_pattern.notification_types.all %}
@@ -53,8 +53,8 @@
                 </td>
                 <td>
                     {% if request.user.role in 'ADMIN,SPECIALIST' %}
-                        <a class="col-4 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_edit' search_pattern_id=search_pattern.id %}">Изменить</a>
-                        <a class="col-4 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_delete' search_pattern_id=search_pattern.id %}">Удалить</a>
+                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_edit' search_pattern_id=search_pattern.id %}">Изменить</a>
+                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:search_pattern_delete' search_pattern_id=search_pattern.id %}">Удалить</a>
                     {% else %}
                         —
                     {% endif %}

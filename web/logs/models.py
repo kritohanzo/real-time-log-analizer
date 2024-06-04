@@ -81,7 +81,7 @@ class SearchPattern(models.Model):
         ordering = ("id",)
 
     def __str__(self):
-        return f"{self.name} ({self.get_search_type_display().lower()})"
+        return self.name
     
 
 class SearchPatternNotificationType(models.Model):
@@ -182,12 +182,16 @@ class AnomalousEvent(models.Model):
         LogFile,
         on_delete=models.SET_NULL,
         null=True,
-        related_name="anomalous_log_events",
+        related_name="anomalous_events",
     )
     count_of_events = models.IntegerField(
         verbose_name="Количество событий в рамках периода",
         null=True,
-        default=None
+        default=0
+    )
+    detected_search_pattern = models.ForeignKey(
+        SearchPattern, on_delete=models.SET_NULL,
+        null=True, related_name='anomalous_events',
     )
 
     class Meta:

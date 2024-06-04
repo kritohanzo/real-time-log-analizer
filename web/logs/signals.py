@@ -19,7 +19,7 @@ def notify_users(sender, instance, *args, **kwargs):
     находятся на странице /logs/, в том случае, если аномальное событие
     не пренадлежит файлу для одноразового сканирования.
     """
-    if instance.log_file.one_time_scan or instance.count_of_events != 0:
+    if instance.log_file.one_time_scan or not instance.count_of_events is None:
         return
 
     message = {
@@ -30,6 +30,10 @@ def notify_users(sender, instance, *args, **kwargs):
         "log_file": {
             "id": instance.log_file.id,
             "name": instance.log_file.name
+        },
+        "detected_search_pattern": {
+            "id": instance.detected_search_pattern.id,
+            "name": instance.detected_search_pattern.name
         },
         "new_log_metric": [
             [str(instance.detected_datetime.astimezone(tz=ZoneInfo(key='Asia/Yekaterinburg')).replace(second=0, microsecond=0)), 1]

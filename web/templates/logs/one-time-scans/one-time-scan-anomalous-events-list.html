@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-5 text-center">
     
-    <h2 class="mb-3">Список аномальных событий в лог-файле</h2>
+    <h2 class="mb-3">Список аномальных событий в лог-файле {{ page.0.log_file.name }}</h2>
     <div class="d-flex justify-content-center">
         <form class="col-3 mb-3 g-3" action="{% url 'logs:one_time_scan_anomalous_events_list' log_file_id=log_file_id%}" method="post">
             {% csrf_token %}
@@ -32,7 +32,7 @@
                 <th scope="col">Событие</th>
                 <th scope="col">Фактическое дата и время</th>
                 <th scope="col">Дата и время детекции</th>
-                <th scope="col">Лог-файл</th>
+                <th scope="col">Паттерн</th>
                 <th scope="col">Действие</th>
             </tr>
         </thead>
@@ -50,7 +50,7 @@
                 </td>
                 <td>{{ anomalous_event.detected_datetime }}</td>
                 <td>
-                    <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_files_list'%}#{{ anomalous_event.log_file.id }}">{{ anomalous_event.log_file }}</a>
+                    <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_patterns_list'%}#{{ anomalous_event.detected_search_pattern.id }}">{{ anomalous_event.detected_search_pattern }}</a>
                 </td>
                 <td>
                     <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>

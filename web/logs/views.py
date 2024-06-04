@@ -28,11 +28,11 @@ class GenerateTestAnomalousEventView(views.View):
             log_file = log_files[randint(0, len(log_files)-1)]
             texts = ["Тестовая строка 1", "Тестовая строка 2", "Тестовая строка 3", "Тестовая строка 4"]
             text = texts[randint(0, len(texts)-1)]
-            anomalous_event = AnomalousEvent.objects.create(text=text, log_file=log_file)
-            search_patterns = anomalous_event.log_file.type.search_patterns.all()
-            for search_pattern in search_patterns:
-                notification_types = search_pattern.notification_types.all()
-                notificate_selector(anomalous_event, notification_types)
+            search_patterns = log_file.type.search_patterns.all()
+            anomalous_event = AnomalousEvent.objects.create(text=text, count_of_events=None, log_file=log_file, detected_search_pattern=search_patterns[randint(0, len(search_patterns)-1)])
+            notification_types = anomalous_event.detected_search_pattern.notification_types.all()
+            notificate_selector(anomalous_event, notification_types)
+            print(anomalous_event)
         return render(request, template_name="success.html", context={"message": "Вы успешно сгенерировали аномальное событие"})
 
 
@@ -42,7 +42,7 @@ class MainPageView(views.View):
         form = AnomalousEventSearchForm()
         start_datetime = datetime.datetime.now(tz=ZoneInfo(key='Asia/Yekaterinburg')).replace(hour=0, minute=0, second=0, microsecond=0)
         end_datetime = start_datetime + datetime.timedelta(days=1)
-        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False, count_of_events=0)
+        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False, count_of_events=None)
         qsstats = QuerySetStats(anomalous_events, date_field='detected_datetime')
         logs_metrics = qsstats.time_series(start_datetime, end_datetime, interval='minutes')
         logs_metrics = list(filter(lambda x: x[1] > 0 or x[0].minute % 30 == 0, logs_metrics))
@@ -54,7 +54,7 @@ class MainPageView(views.View):
         if not form.is_valid():
             return self.get(self, request, *args, **kwargs)
         text, start_datetime, end_datetime, log_file, log_type, search_pattern = form.cleaned_data.values()
-        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False, count_of_events=0)
+        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False, count_of_events=None)
         if text:
             anomalous_events = anomalous_events.filter(text__icontains=text)
         if log_file:
@@ -77,7 +77,7 @@ class MainPageView(views.View):
 
 class AnomalousEventListView(views.View):
     def get(self, request, *args, **kwargs):
-        anomalous_events = AnomalousEvent.objects.filter(log_file__one_time_scan=False, count_of_events=0)
+        anomalous_events = AnomalousEvent.objects.filter(log_file__one_time_scan=False, count_of_events=None)
         paginator = Paginator(anomalous_events, 50)
         page = paginator.get_page(self.request.GET.get('page'))
         form = AnomalousEventSearchForm()
@@ -88,7 +88,7 @@ class AnomalousEventListView(views.View):
         if not form.is_valid():
             return self.get(self, request, *args, **kwargs)
         text, start_datetime, end_datetime, log_file, log_type, search_pattern = form.cleaned_data.values()
-        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False, count_of_events=0)
+        anomalous_events = AnomalousEvent.objects.filter(detected_datetime__gt=start_datetime, detected_datetime__lt=end_datetime, log_file__one_time_scan=False, count_of_events=None)
         if text:
             anomalous_events = anomalous_events.filter(text__icontains=text)
         if log_file:
@@ -106,7 +106,7 @@ class AnomalousEventDeleteView(views.View):
     def get(self, request, anomalous_event_id, *args, **kwargs):
         anomalous_event = get_object_or_404(AnomalousEvent, id=anomalous_event_id)
         anomalous_event.delete()
-        return render(request, template_name="success.html", context={"message": "Вы успеншо удалили аномальное событие"})
+        return render(request, template_name="success.html", context={"message": "Вы успешно удалили аномальное событие"})
 
 
 # Log File Views
@@ -146,7 +146,7 @@ class LogFileAddView(views.View):
         if not form.is_valid():
             return render(request, template_name="logs/log-files/log-file-form.html", context={"form": form})
         LogFile.objects.create(**form.cleaned_data, one_time_scan=False)
-        return render(request, template_name="success.html", context={"message": "Вы успеншо добавили лог-файл"})
+        return render(request, template_name="success.html", context={"message": "Вы успешно добавили лог-файл"})
 
 
 class LogFileEditView(views.View):
@@ -293,7 +293,7 @@ class SearchPatternDeleteView(views.View):
     def get(self, request, search_pattern_id, *args, **kwargs):
         search_pattern = get_object_or_404(SearchPattern, id=search_pattern_id)
         search_pattern.delete()
-        return render(request, template_name="success.html", context={"message": "Вы успеншо удалили поисковый паттерн"})
+        return render(request, template_name="success.html", context={"message": "Вы успешно удалили поисковый паттерн"})
     
 
 # One Time Scan Views
@@ -329,7 +329,7 @@ class OneTimeScanDeleteView(views.View):
 class OneTimeScanAnomalousEventListView(views.View):
     def get(self, request, log_file_id, *args, **kwargs):
         form = OneTimeScanAnomalousEventSearchForm()
-        anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id, count_of_events=0)
+        anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id, count_of_events=None)
         paginator = Paginator(anomalous_events, 50)
         page = paginator.get_page(self.request.GET.get('page'))
         return render(request, template_name="logs/one-time-scans/one-time-scan-anomalous-events-list.html", context={"page": page, "form": form, "log_file_id": log_file_id})
@@ -338,7 +338,7 @@ class OneTimeScanAnomalousEventListView(views.View):
         form = OneTimeScanAnomalousEventSearchForm(request.POST)
         if not form.is_valid():
             return self.get(self, request, *args, **kwargs)
-        anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id, count_of_events=0)
+        anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id, count_of_events=None)
         text = form.cleaned_data.get('text')
         if text:
             anomalous_events = anomalous_events.filter(text__icontains=text)

@@ -33,6 +33,7 @@
                 <th scope="col">Фактическое дата и время</th>
                 <th scope="col">Дата и время детекции</th>
                 <th scope="col">Лог-файл</th>
+                <th scope="col">Паттерн</th>
                 <th scope="col">Действие</th>
             </tr>
         </thead>
@@ -51,6 +52,9 @@
                 <td>{{ anomalous_event.detected_datetime }}</td>
                 <td>
                     <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_files_list'%}#{{ anomalous_event.log_file.id }}">{{ anomalous_event.log_file }}</a>
+                </td>
+                <td>
+                    <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_patterns_list'%}#{{ anomalous_event.search_pattern.id }}">{{ anomalous_event.detected_search_pattern }}</a>
                 </td>
                 <td>
                     <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
@@ -206,6 +210,7 @@
                 $('.table tbody tr').first().append('<td>' + data.fact_datetime + '</td>');
                 $('.table tbody tr').first().append('<td>' + data.detected_datetime + '</td>');
                 $('.table tbody tr').first().append("<td><a class='col-10 btn btn-sm btn-outline-light mx-1' href='{% url 'logs:log_files_list'%}#" + data.log_file.id + "'>" + data.log_file.name + "</a></td>");
+                $('.table tbody tr').first().append("<td><a class='col-10 btn btn-sm btn-outline-light mx-1' href='{% url 'logs:search_patterns_list'%}#" + data.detected_search_pattern.id + "'>" + data.detected_search_pattern.name + "</a></td>");
                 $('.table tbody tr').first().append("<td><a class='col-7 btn btn-sm btn-outline-light m-1' href='/logs/anomalous-events/" + data.id + "/delete'>Удалить</a></td>");
                 $('.table tbody').prepend('</tr>');
 
