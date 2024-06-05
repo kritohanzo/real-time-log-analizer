@@ -85,11 +85,11 @@ class SearchPatternForm(forms.ModelForm):
         ),
     )    
     counter = forms.BooleanField(
-        label="Повторяющееся событие",
+        label="Повторяющееся событие с одного IP-адреса",
         required=False,
         widget=forms.CheckboxInput(
             attrs={
-                "placeholder": "Повторяющееся событие",
+                "placeholder": "Повторяющееся событие с одного IP-адреса",
                 "class": "form-check form-switch form-check-input",
             }
         ),
@@ -297,3 +297,17 @@ class OneTimeScanAnomalousEventSearchForm(forms.Form):
             attrs={"placeholder": "Введите текст события", "class": "form-control"}
         ),
     )
+    search_pattern = forms.ModelChoiceField(
+        queryset=SearchPattern.objects.none(),
+        required=False,
+        label="Поисковый паттерн",
+        widget=forms.Select(
+            attrs={"class": "form-control"}
+        ),
+        empty_label="Любой"
+    )
+
+    def __init__(self, *args, **kwargs):
+        log_file_id = kwargs.pop('log_file_id')
+        self.declared_fields.get('search_pattern').queryset = LogFile.objects.get(id=log_file_id).type.search_patterns.all()
+        super().__init__(*args, **kwargs)

@@ -7,16 +7,19 @@
     
     <h2 class="mb-3">Список аномальных событий в лог-файле {{ page.0.log_file.name }}</h2>
     <div class="d-flex justify-content-center">
-        <form class="col-3 mb-3 g-3" action="{% url 'logs:one_time_scan_anomalous_events_list' log_file_id=log_file_id%}" method="post">
+        <form class="col-6 mb-3 g-3" action="{% url 'logs:one_time_scan_anomalous_events_list' log_file_id=log_file_id%}" method="post">
             {% csrf_token %}
-            {% for field in form %}
-                <div class="col-12 mb-2">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    <div>{{ field }}</div>
-                </div>
-            {% endfor %}
+        
+            <div class="row">
+                {% for field in form %}
+                    <div class="col-6 mb-2">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        <div>{{ field }}</div>
+                    </div>
+                {% endfor %}
+            </div>
 
-            <div class="col-12 text-center">
+            <div class="d-flex justify-content-center text-center">
                 <button type="submit" class="btn btn-outline-light col-12 mt-2">
                     Поиск
                 </button>
@@ -32,7 +35,7 @@
                 <th scope="col">Событие</th>
                 <th scope="col">Фактическое дата и время</th>
                 <th scope="col">Дата и время детекции</th>
-                <th scope="col">Паттерн</th>
+                <th scope="col">Поисковый паттерн</th>
                 <th scope="col">Действие</th>
             </tr>
         </thead>

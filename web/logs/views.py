@@ -328,14 +328,14 @@ class OneTimeScanDeleteView(views.View):
 
 class OneTimeScanAnomalousEventListView(views.View):
     def get(self, request, log_file_id, *args, **kwargs):
-        form = OneTimeScanAnomalousEventSearchForm()
+        form = OneTimeScanAnomalousEventSearchForm(log_file_id=log_file_id)
         anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id, count_of_events=None)
         paginator = Paginator(anomalous_events, 50)
         page = paginator.get_page(self.request.GET.get('page'))
         return render(request, template_name="logs/one-time-scans/one-time-scan-anomalous-events-list.html", context={"page": page, "form": form, "log_file_id": log_file_id})
     
     def post(self, request, log_file_id, *args, **kwargs):
-        form = OneTimeScanAnomalousEventSearchForm(request.POST)
+        form = OneTimeScanAnomalousEventSearchForm(request.POST, log_file_id=log_file_id)
         if not form.is_valid():
             return self.get(self, request, *args, **kwargs)
         anomalous_events = AnomalousEvent.objects.filter(log_file__id=log_file_id, count_of_events=None)
