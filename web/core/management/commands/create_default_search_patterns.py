@@ -13,17 +13,17 @@ BAD_BOTS = (
     "IstellaBot Java Java/1\. JamesBOT JennyBot JS-Kit k2spider Kenjin Spider Keyword Density/0\.9 "
     "kmSearchBot larbin LexiBot libWeb libwww Linguee LinkExchanger LinkextractorPro linko LinkScan/8\.1a "
     "Unix LinkWalker lmspider LNSpiderguy ltx71 lwp-trivial lwp\-trivial magpie Mata Hari MaxPointCrawler "
-    "MegaIndex memoryBot Microsoft URL Control MIIxpc Mippin Missigua Locator Mister PiX MJ12bot MLBot "
-    "moget MSIECrawler msnbot msnbot-media NetAnts NICErsPRO Niki\-Bot NjuiceBot NPBot Nutch Offline "
-    "Explorer OLEcrawler Openfind panscient\.com PostRank ProPowerBot/2\.14 ProWebWalker ptd-crawler "
+    "MegaIndex memoryBot MIIxpc Mippin Missigua Locator Mister PiX MJ12bot MLBot moget MSIECrawler "
+    "msnbot msnbot-media NetAnts NICErsPRO Niki\-Bot NjuiceBot NPBot Nutch Offline Explorer "
+    "OLEcrawler Openfind panscient\.com PostRank ProPowerBot/2\.14 ProWebWalker ptd-crawler "
     "Purebot PycURL Python\-urllib QueryN Metasearch RepoMonkey Riddler RMA Scrapy SemrushBot serf "
     "SeznamBot SISTRIX SiteBot sitecheck\.Internetseer\.com SiteSnagger Serpstat Slurp SnapPreviewBot "
     "Sogou Soup SpankBot spanner spbot Spinn3r SpyFu suggybot SurveyBot suzuran SWeb Szukacz/1\.4 "
-    "Teleport Telesoft The Intraformant TheNomad TightTwatBot Titan toCrawl/UrlDispatcher True_Robot "
-    "ttCrawler turingos TurnitinBot UbiCrawler UnisterBot Unknown uptime files URLy Warning User-Agent "
-    "VCI Vedma Voyager WBSearchBot Web Downloader/6\.9 Web Image Collector WebAuto WebBandit WebCopier "
-    "WebEnhancer WebmasterWorldForumBot WebReaper WebSauger Website Quester Webster Pro WebStripper "
-    "WebZip Wget WordPress Wotbox wsr\-agent WWW\-Collector\-E Yeti YottosBot Zao Zeus ZyBORG"
+    "Teleport Telesoft Intraformant TheNomad TightTwatBot Titan toCrawl/UrlDispatcher True_Robot "
+    "ttCrawler turingos TurnitinBot UbiCrawler UnisterBot URLy VCIBot Vedma Voyager WBSearchBot "
+    "Downloader/6\.9 Collector WebAuto WebBandit WebCopier WebEnhancer WebmasterWorldForumBot "
+    "WebReaper WebSauger Website Quester Webster WebStripper WebZip Wget WordPress "
+    "Wotbox wsr\-agent WWW\-Collector\-E Yeti YottosBot Zao Zeus ZyBORG"
 )
 
 
@@ -34,11 +34,11 @@ class Command(BaseCommand):
         # HTTP
         {
             "name": "HTTP GET DOS", "pattern": "GET", "search_type": "SIMPLE", "counter": True,
-            "count_of_events": 10, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "count_of_events": 100, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
         },
         {
-            "name": "HTTP INTERNAL ERROR BRUTE", "pattern": "POST 500", "search_type": "COEFFICIENT", "counter": True,
-            "coefficient": 1 , "count_of_events": 3, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "name": "HTTP POST INTERNAL ERROR", "pattern": "POST 500", "search_type": "COEFFICIENT", "counter": True,
+            "coefficient": 1 , "count_of_events": 10, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
         },
         {
             "name": "HTTP BAD BOTS", "pattern": BAD_BOTS, "search_type": "COEFFICIENT", "coefficient": 0.003
@@ -48,24 +48,29 @@ class Command(BaseCommand):
             "search_type": "COEFFICIENT", "coefficient": 0.375
         },
         {
-            "name": "HTTP AUTH POST 400", "pattern": "POST login auth 400", "search_type": "COEFFICIENT", "coefficient": 0.75
+            "name": "HTTP GET XSS", "pattern": "<script> alert( .cookie",
+            "search_type": "COEFFICIENT", "coefficient": 0.3
+        },
+        {
+            "name": "HTTP AUTH POST 400", "pattern": "POST login auth 400", "search_type": "COEFFICIENT", "coefficient": 0.75,
+            "counter": True, "count_of_events": 5, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
         },
         # FTP
         {
             "name": "FTP FAILED AUTH", "pattern": "PASS 530", "search_type": "COEFFICIENT", "counter": True,
-            "coefficient": 1, "count_of_events": 5, "period_of_events": datetime.strptime("00:00:30", "%H:%M:%S")
+            "coefficient": 1, "count_of_events": 10, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
         },
         # DNS
         {
             "name": "DNS DOS", "pattern": "PACKET Rcv", "search_type": "COEFFICIENT", "counter": True,
-            "coefficient": 1, "count_of_events": 30, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "coefficient": 1, "count_of_events": 40, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
         },
         {
             "name": "DNS DOMAIN ZONE UPDATE", "pattern": " R U ", "search_type": "SIMPLE"
         },
         {
             "name": "DNS SERVFAIL ERROR", "pattern": "SERVFAIL", "search_type": "SIMPLE", "counter": True,
-            "count_of_events": 15, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "count_of_events": 30, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
         },
         # SMTP
         {
@@ -91,7 +96,7 @@ class Command(BaseCommand):
             "search_type": "COEFFICIENT", "coefficient": 1
         },
         {
-            "name": "FIREFALL ARP RESOLUTION FAILED", "pattern": "sev=warning cat=ARP",
+            "name": "FIREWALL ARP RESOLUTION FAILED", "pattern": "sev=warning cat=ARP",
             "search_type": "COEFFICIENT", "coefficient": 1
         },
         {
@@ -100,7 +105,7 @@ class Command(BaseCommand):
         },
         {
             "name": "FIREWALL CONN DOS", "pattern": "sev=info cat=CONN event=conn_open", "counter": True,
-            "search_type": "COEFFICIENT", "coefficient": 1, "count_of_events": 6,
+            "search_type": "COEFFICIENT", "coefficient": 1, "count_of_events": 10,
             "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
         },
     ]

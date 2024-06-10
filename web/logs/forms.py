@@ -135,7 +135,7 @@ class SearchPatternForm(forms.ModelForm):
         fields = ("name", "pattern", "search_type",  "counter", "coefficient", "count_of_events", "period_of_events", "notification_types")
 
 
-class AnomalousEventSearchForm(forms.Form):
+class AnomalousEventBaseSearchForm(forms.Form):
     text = forms.CharField(
         label="Текст события",
         max_length=255,
@@ -144,30 +144,8 @@ class AnomalousEventSearchForm(forms.Form):
             attrs={"placeholder": "Введите текст события", "class": "form-control"}
         ),
     )
-    start_datetime = forms.DateTimeField(
-        label="Начало периода",
-        required=True,
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Выберите начала периода",
-                "class": "form-control",
-                "type": "datetime-local",
-                "value": datetime.datetime.now().strftime('%Y-%m-%d 00:00')}
-        ),
-    )
-    end_datetime = forms.DateTimeField(
-        label="Конец периода",
-        required=True,
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Выберите начала периода",
-                "class": "form-control",
-                "type": "datetime-local",
-                "value": (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00')}
-        ),
-    )
     log_file = forms.ModelChoiceField(
-        queryset=LogFile.objects.all(),
+        queryset=LogFile.objects.filter(one_time_scan=False),
         required=False,
         label="Лог-файл",
         widget=forms.Select(
@@ -192,6 +170,58 @@ class AnomalousEventSearchForm(forms.Form):
             attrs={"class": "form-control"}
         ),
         empty_label="Любой"
+    )
+
+
+class AnomalousEventMainPageSearchForm(AnomalousEventBaseSearchForm):
+    start_datetime = forms.DateTimeField(
+        label="Начало периода",
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Выберите начала периода",
+                "class": "form-control",
+                "type": "datetime-local",
+                "value": datetime.datetime.now().strftime('%Y-%m-%d 00:00')}
+        ),
+    )
+    end_datetime = forms.DateTimeField(
+        label="Конец периода",
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Выберите начала периода",
+                "class": "form-control",
+                "type": "datetime-local",
+                "value": (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00')}
+        ),
+    )
+
+
+class AnomalousEventSearchForm(AnomalousEventBaseSearchForm):
+    start_datetime = forms.DateTimeField(
+        label="Начало периода",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Выберите начала периода",
+                "class": "form-control",
+                "type": "datetime-local",
+                "step": "1"
+            }
+        ),
+    )
+    end_datetime = forms.DateTimeField(
+        label="Конец периода",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Выберите конец периода",
+                "class": "form-control",
+                "type": "datetime-local",
+                "step": "1"
+            }
+        ),
     )
 
 
@@ -270,7 +300,7 @@ class SearchPatternSearchForm(forms.Form):
         ),
     )
     search_type = forms.ChoiceField(
-        choices=SearchPatternTypeChoices.choices(),
+        choices=SearchPatternTypeChoices.choices_with_none(),
         label="Тип поиска",
         required=False,
         widget=forms.Select(

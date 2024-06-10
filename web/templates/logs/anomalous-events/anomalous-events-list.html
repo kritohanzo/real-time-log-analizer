@@ -6,7 +6,6 @@
 <div class="mx-5 mt-5 text-center">
     
     <h2 class="mb-3">Список аномальных событий в лог-файлах</h2>
-
     <form class="col-12 mb-3 g-3" action="{% url 'logs:anomalous_events_list' %}" method="post">
         {% csrf_token %}
 
@@ -61,7 +60,7 @@
                 </td>
                 <td>
                     {% if request.user.role in 'ADMIN,SPECIALIST' %}
-                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
+                        <a class="col-10 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
                     {% else %}
                         —
                     {% endif %}

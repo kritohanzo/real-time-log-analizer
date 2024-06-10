@@ -11,6 +11,10 @@ class SearchPatternTypeChoices(Enum):
     @classmethod
     def choices(cls):
         return tuple((role.name, role.value) for role in cls)
+    
+    @classmethod
+    def choices_with_none(cls):
+        return ((None, "Любой"),) + cls.choices()
 
 
 class NotificationType(models.Model):
@@ -153,6 +157,10 @@ class LogFile(models.Model):
     )
     one_time_scan = models.BooleanField(
         verbose_name="Одноразовое сканирование",
+        default=False
+    )
+    one_time_scan_is_done = models.BooleanField(
+        verbose_name="Одноразовое сканирование заверешно",
         default=False
     )
     last_positions = models.IntegerField(

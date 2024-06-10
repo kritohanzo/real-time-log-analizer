@@ -32,7 +32,11 @@
                 </td>
                 <td>
                     {% if request.user.role in 'ADMIN,SPECIALIST' %}
-                        <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:one_time_scan_anomalous_events_list' log_file_id=log_file.id %}">Результаты</a>
+                        {% if log_file.one_time_scan_is_done %}
+                            <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:one_time_scan_anomalous_events_list' log_file_id=log_file.id %}">Результаты</a>
+                        {% else %}
+                            <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:one_time_scan_anomalous_events_list' log_file_id=log_file.id %}">Сканирование в процессе</a>
+                        {% endif %}
                         <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:one_time_scan_delete' log_file_id=log_file.id %}">Удалить</a>
                     {% else %}
                         —

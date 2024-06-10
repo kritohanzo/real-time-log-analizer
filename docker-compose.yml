@@ -5,6 +5,8 @@ volumes:
   django_static:
 
 services:
+  redis:
+    image: redis:7.2.4
   postgres:
     image: postgres:15.6
     ports:
@@ -19,8 +21,6 @@ services:
       retries: 10
     depends_on:
       - redis
-  redis:
-    image: redis:7.2.4
   django:
     build:
       context: .

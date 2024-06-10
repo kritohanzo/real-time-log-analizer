@@ -54,10 +54,10 @@
                     <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:log_files_list'%}#{{ anomalous_event.log_file.id }}">{{ anomalous_event.log_file }}</a>
                 </td>
                 <td>
-                    <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_patterns_list'%}#{{ anomalous_event.search_pattern.id }}">{{ anomalous_event.detected_search_pattern }}</a>
+                    <a class="col-10 btn btn-sm btn-outline-light mx-1" href="{% url 'logs:search_patterns_list'%}#{{ anomalous_event.detected_search_pattern.id }}">{{ anomalous_event.detected_search_pattern }}</a>
                 </td>
                 <td>
-                    <a class="col-7 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
+                    <a class="col-10 btn btn-sm btn-outline-light m-1" href="{% url 'logs:anomalous_event_delete' anomalous_event_id=anomalous_event.id %}">Удалить</a>
                 </td>
             </tr>
             {% endfor %}
