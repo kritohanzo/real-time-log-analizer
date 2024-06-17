@@ -1,6 +1,8 @@
-from pathlib import Path
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -8,7 +10,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(override=True)
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-w(5yuunt#i+31tt@912&lcw&1&(2=)8$omvt&mp&b_9mc2tw5*")
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-w(5yuunt#i+31tt@912&lcw&1&(2=)8$omvt&mp&b_9mc2tw5*",
+)
 
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
@@ -100,7 +105,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
-STATIC_ROOT =  os.path.join(BASE_DIR, "collected_static")
+STATIC_ROOT = os.path.join(BASE_DIR, "collected_static")
 STATICFILES_DIR = os.path.join(BASE_DIR, "static")
 STATICFILES_DIRS = [STATICFILES_DIR]
 
@@ -113,39 +118,35 @@ LOGIN_REDIRECT_URL = "logs:main_page"
 LOGOUT_URL = "users:user_logout"
 
 WSGI_APPLICATION = "main.wsgi.application"
-ASGI_APPLICATION = 'main.asgi.application'
+ASGI_APPLICATION = "main.asgi.application"
 
 if DEBUG:
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+else:
+    CHANNEL_REDIS_BROKER_URL = "redis://redis/1"
     CHANNEL_LAYERS = {
         "default": {
-            "BACKEND": "channels.layers.InMemoryChannelLayer"
-        }
-    }
-else:
-    CHANNEL_REDIS_BROKER_URL = 'redis://redis/1'
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
                 "hosts": [CHANNEL_REDIS_BROKER_URL],
             },
         },
     }
 
-CELERY_BROKER_URL = 'redis://redis/0'
+CELERY_BROKER_URL = "redis://redis/0"
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 # CELERY_TASK_TRACK_STARTED = True
 # CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
 # CELERY_TIMEZONE = 'Europe/Moscow'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.mail.ru")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False") == "True"
 EMAIL_PORT = os.getenv("EMAIL_PORT", 465)
-EMAIL_USE_SSL =  os.getenv("EMAIL_USE_SSL", "True") == "True"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "example@example.com")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "exampleExample")
 DEFAULT_FROM_EMAIL = "log_analyzer@mail.ru"

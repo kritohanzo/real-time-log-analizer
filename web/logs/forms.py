@@ -1,8 +1,15 @@
-from django import forms
-from django.contrib.auth.forms import AuthenticationForm
-from users.models import User, RoleChoices
-from logs.models import LogType, LogFile, SearchPattern, SearchPatternTypeChoices, AnomalousEvent, NotificationType
 import datetime
+
+from django import forms
+
+from logs.models import (
+    LogFile,
+    LogType,
+    NotificationType,
+    SearchPattern,
+    SearchPatternTypeChoices,
+)
+
 
 class LogFileForm(forms.ModelForm):
     name = forms.CharField(
@@ -10,7 +17,10 @@ class LogFileForm(forms.ModelForm):
         max_length=64,
         required=True,
         widget=forms.TextInput(
-            attrs={"placeholder": "Введите краткое название или описание лог-файла", "class": "form-control"}
+            attrs={
+                "placeholder": "Введите краткое название или описание лог-файла",
+                "class": "form-control",
+            }
         ),
     )
     path = forms.CharField(
@@ -25,12 +35,10 @@ class LogFileForm(forms.ModelForm):
         queryset=LogType.objects.all(),
         label="Тип протокола / ПО",
         required=True,
-        widget=forms.Select(
-            attrs={"class": "form-control"}
-        ),
-        empty_label="—"
+        widget=forms.Select(attrs={"class": "form-control"}),
+        empty_label="—",
     )
-    
+
     class Meta:
         model = LogFile
         fields = ("name", "path", "type")
@@ -42,7 +50,10 @@ class LogTypeForm(forms.ModelForm):
         max_length=255,
         required=True,
         widget=forms.TextInput(
-            attrs={"placeholder": "Введите краткое название или описание протокола / ПО", "class": "form-control"}
+            attrs={
+                "placeholder": "Введите краткое название или описание протокола / ПО",
+                "class": "form-control",
+            }
         ),
     )
     search_patterns = forms.ModelMultipleChoiceField(
@@ -53,7 +64,7 @@ class LogTypeForm(forms.ModelForm):
             attrs={"class": "form-check form-check-inline"}
         ),
     )
-    
+
     class Meta:
         model = LogType
         fields = ("name", "search_patterns")
@@ -65,7 +76,10 @@ class SearchPatternForm(forms.ModelForm):
         max_length=255,
         required=True,
         widget=forms.TextInput(
-            attrs={"placeholder": "Введите краткое название или описание поискового паттерна", "class": "form-control"}
+            attrs={
+                "placeholder": "Введите краткое название или описание поискового паттерна",
+                "class": "form-control",
+            }
         ),
     )
     pattern = forms.CharField(
@@ -83,7 +97,7 @@ class SearchPatternForm(forms.ModelForm):
         widget=forms.Select(
             attrs={"placeholder": "Выберите тип поиска", "class": "form-select"}
         ),
-    )    
+    )
     counter = forms.BooleanField(
         label="Повторяющееся событие с одного IP-адреса",
         required=False,
@@ -98,14 +112,20 @@ class SearchPatternForm(forms.ModelForm):
         label="Коэффициент вхождения",
         required=False,
         widget=forms.TextInput(
-            attrs={"placeholder": "Введите коэффициент вхождения", "class": "form-control"}
+            attrs={
+                "placeholder": "Введите коэффициент вхождения",
+                "class": "form-control",
+            }
         ),
     )
     count_of_events = forms.IntegerField(
         label="Количество событий до оповещения",
         required=False,
         widget=forms.TextInput(
-            attrs={"placeholder": "Введите количество событий до оповещения", "class": "form-control"}
+            attrs={
+                "placeholder": "Введите количество событий до оповещения",
+                "class": "form-control",
+            }
         ),
     )
     period_of_events = forms.TimeField(
@@ -116,7 +136,7 @@ class SearchPatternForm(forms.ModelForm):
                 "placeholder": "Введите период для подсчёта количества событий до оповещения",
                 "class": "form-control",
                 "type": "time",
-                "step": "1"
+                "step": "1",
             }
         ),
     )
@@ -127,12 +147,21 @@ class SearchPatternForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple(
             attrs={"class": "form-check form-check-inline"}
         ),
-        initial=NotificationType.objects.filter(method="websocket")
+        initial=NotificationType.objects.filter(method="websocket"),
     )
-    
+
     class Meta:
         model = SearchPattern
-        fields = ("name", "pattern", "search_type",  "counter", "coefficient", "count_of_events", "period_of_events", "notification_types")
+        fields = (
+            "name",
+            "pattern",
+            "search_type",
+            "counter",
+            "coefficient",
+            "count_of_events",
+            "period_of_events",
+            "notification_types",
+        )
 
 
 class AnomalousEventBaseSearchForm(forms.Form):
@@ -148,28 +177,22 @@ class AnomalousEventBaseSearchForm(forms.Form):
         queryset=LogFile.objects.filter(one_time_scan=False),
         required=False,
         label="Лог-файл",
-        widget=forms.Select(
-            attrs={"class": "form-control"}
-        ),
-        empty_label="Любой"
+        widget=forms.Select(attrs={"class": "form-control"}),
+        empty_label="Любой",
     )
     log_type = forms.ModelChoiceField(
         queryset=LogType.objects.all(),
         required=False,
         label="Тип протокола / ПО",
-        widget=forms.Select(
-            attrs={"class": "form-control"}
-        ),
-        empty_label="Любой"
+        widget=forms.Select(attrs={"class": "form-control"}),
+        empty_label="Любой",
     )
     search_pattern = forms.ModelChoiceField(
         queryset=SearchPattern.objects.all(),
         required=False,
         label="Поисковый паттерн",
-        widget=forms.Select(
-            attrs={"class": "form-control"}
-        ),
-        empty_label="Любой"
+        widget=forms.Select(attrs={"class": "form-control"}),
+        empty_label="Любой",
     )
 
 
@@ -182,7 +205,8 @@ class AnomalousEventMainPageSearchForm(AnomalousEventBaseSearchForm):
                 "placeholder": "Выберите начала периода",
                 "class": "form-control",
                 "type": "datetime-local",
-                "value": datetime.datetime.now().strftime('%Y-%m-%d 00:00')}
+                "value": datetime.datetime.now().strftime("%Y-%m-%d 00:00"),
+            }
         ),
     )
     end_datetime = forms.DateTimeField(
@@ -193,7 +217,10 @@ class AnomalousEventMainPageSearchForm(AnomalousEventBaseSearchForm):
                 "placeholder": "Выберите начала периода",
                 "class": "form-control",
                 "type": "datetime-local",
-                "value": (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00')}
+                "value": (
+                    datetime.datetime.now() + datetime.timedelta(days=1)
+                ).strftime("%Y-%m-%d 00:00"),
+            }
         ),
     )
 
@@ -207,7 +234,7 @@ class AnomalousEventSearchForm(AnomalousEventBaseSearchForm):
                 "placeholder": "Выберите начала периода",
                 "class": "form-control",
                 "type": "datetime-local",
-                "step": "1"
+                "step": "1",
             }
         ),
     )
@@ -219,7 +246,7 @@ class AnomalousEventSearchForm(AnomalousEventBaseSearchForm):
                 "placeholder": "Выберите конец периода",
                 "class": "form-control",
                 "type": "datetime-local",
-                "step": "1"
+                "step": "1",
             }
         ),
     )
@@ -246,19 +273,15 @@ class LogFileSearchForm(forms.Form):
         queryset=LogType.objects.all(),
         required=False,
         label="Тип протокола / ПО",
-        widget=forms.Select(
-            attrs={"class": "form-control"}
-        ),
-        empty_label="Любой"
+        widget=forms.Select(attrs={"class": "form-control"}),
+        empty_label="Любой",
     )
     search_pattern = forms.ModelChoiceField(
         queryset=SearchPattern.objects.all(),
         required=False,
         label="Поисковый паттерн",
-        widget=forms.Select(
-            attrs={"class": "form-control"}
-        ),
-        empty_label="Любой"
+        widget=forms.Select(attrs={"class": "form-control"}),
+        empty_label="Любой",
     )
 
 
@@ -275,10 +298,8 @@ class LogTypeSearchForm(forms.Form):
         queryset=SearchPattern.objects.all(),
         required=False,
         label="Поисковый паттерн",
-        widget=forms.Select(
-            attrs={"class": "form-control"}
-        ),
-        empty_label="Любой"
+        widget=forms.Select(attrs={"class": "form-control"}),
+        empty_label="Любой",
     )
 
 
@@ -306,7 +327,7 @@ class SearchPatternSearchForm(forms.Form):
         widget=forms.Select(
             attrs={"placeholder": "Выберите тип поиска", "class": "form-select"}
         ),
-    )    
+    )
     notification_type = forms.ModelChoiceField(
         queryset=NotificationType.objects.all(),
         label="Тип оповещений",
@@ -314,8 +335,8 @@ class SearchPatternSearchForm(forms.Form):
         widget=forms.Select(
             attrs={"placeholder": "Выберите тип оповещений", "class": "form-select"}
         ),
-        empty_label="Любой"
-    )  
+        empty_label="Любой",
+    )
 
 
 class OneTimeScanAnomalousEventSearchForm(forms.Form):
@@ -331,13 +352,13 @@ class OneTimeScanAnomalousEventSearchForm(forms.Form):
         queryset=SearchPattern.objects.none(),
         required=False,
         label="Поисковый паттерн",
-        widget=forms.Select(
-            attrs={"class": "form-control"}
-        ),
-        empty_label="Любой"
+        widget=forms.Select(attrs={"class": "form-control"}),
+        empty_label="Любой",
     )
 
     def __init__(self, *args, **kwargs):
-        log_file_id = kwargs.pop('log_file_id')
-        self.declared_fields.get('search_pattern').queryset = LogFile.objects.get(id=log_file_id).type.search_patterns.all()
+        log_file_id = kwargs.pop("log_file_id")
+        self.declared_fields.get("search_pattern").queryset = LogFile.objects.get(
+            id=log_file_id
+        ).type.search_patterns.all()
         super().__init__(*args, **kwargs)

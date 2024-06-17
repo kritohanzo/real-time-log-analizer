@@ -1,6 +1,9 @@
-from django.core.management.base import BaseCommand, CommandError
-from logs.models import SearchPattern, NotificationType
 from datetime import datetime
+
+from django.core.management.base import BaseCommand
+
+from logs.models import NotificationType, SearchPattern
+
 
 BAD_BOTS = (
     "Abonti aggregator AhrefsBot Aport asterias Baiduspider BDCbot Birubot BLEXBot BUbiNG BuiltBotTough "
@@ -29,95 +32,156 @@ BAD_BOTS = (
 
 class Command(BaseCommand):
     help = "create default search patterns"
-    websocket_notification = NotificationType.objects.filter(method='websocket')
+    websocket_notification = NotificationType.objects.filter(method="websocket")
     default_search_patterns = [
         # HTTP
         {
-            "name": "HTTP GET DOS", "pattern": "GET", "search_type": "SIMPLE", "counter": True,
-            "count_of_events": 100, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "name": "HTTP GET DOS",
+            "pattern": "GET",
+            "search_type": "SIMPLE",
+            "counter": True,
+            "count_of_events": 100,
+            "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S"),
         },
         {
-            "name": "HTTP POST INTERNAL ERROR", "pattern": "POST 500", "search_type": "COEFFICIENT", "counter": True,
-            "coefficient": 1 , "count_of_events": 10, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "name": "HTTP POST INTERNAL ERROR",
+            "pattern": "POST 500",
+            "search_type": "COEFFICIENT",
+            "counter": True,
+            "coefficient": 1,
+            "count_of_events": 10,
+            "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S"),
         },
         {
-            "name": "HTTP BAD BOTS", "pattern": BAD_BOTS, "search_type": "COEFFICIENT", "coefficient": 0.003
+            "name": "HTTP BAD BOTS",
+            "pattern": BAD_BOTS,
+            "search_type": "COEFFICIENT",
+            "coefficient": 0.003,
         },
         {
-            "name": "HTTP GET SQL INJECTION", "pattern": "OR 1=1 \' \" SELECT FROM WHERE AND",
-            "search_type": "COEFFICIENT", "coefficient": 0.375
+            "name": "HTTP GET SQL INJECTION",
+            "pattern": "OR 1=1 ' \" SELECT FROM WHERE AND",
+            "search_type": "COEFFICIENT",
+            "coefficient": 0.375,
         },
         {
-            "name": "HTTP GET XSS", "pattern": "<script> alert( .cookie",
-            "search_type": "COEFFICIENT", "coefficient": 0.3
+            "name": "HTTP GET XSS",
+            "pattern": "<script> alert( .cookie",
+            "search_type": "COEFFICIENT",
+            "coefficient": 0.3,
         },
         {
-            "name": "HTTP AUTH POST 400", "pattern": "POST login auth 400", "search_type": "COEFFICIENT", "coefficient": 0.75,
-            "counter": True, "count_of_events": 5, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "name": "HTTP AUTH POST 400",
+            "pattern": "POST login auth 400",
+            "search_type": "COEFFICIENT",
+            "coefficient": 0.75,
+            "counter": True,
+            "count_of_events": 5,
+            "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S"),
         },
         # FTP
         {
-            "name": "FTP FAILED AUTH", "pattern": "PASS 530", "search_type": "COEFFICIENT", "counter": True,
-            "coefficient": 1, "count_of_events": 10, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "name": "FTP FAILED AUTH",
+            "pattern": "PASS 530",
+            "search_type": "COEFFICIENT",
+            "counter": True,
+            "coefficient": 1,
+            "count_of_events": 10,
+            "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S"),
         },
         # DNS
         {
-            "name": "DNS DOS", "pattern": "PACKET Rcv", "search_type": "COEFFICIENT", "counter": True,
-            "coefficient": 1, "count_of_events": 40, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "name": "DNS DOS",
+            "pattern": "PACKET Rcv",
+            "search_type": "COEFFICIENT",
+            "counter": True,
+            "coefficient": 1,
+            "count_of_events": 40,
+            "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S"),
         },
+        {"name": "DNS DOMAIN ZONE UPDATE", "pattern": " R U ", "search_type": "SIMPLE"},
         {
-            "name": "DNS DOMAIN ZONE UPDATE", "pattern": " R U ", "search_type": "SIMPLE"
-        },
-        {
-            "name": "DNS SERVFAIL ERROR", "pattern": "SERVFAIL", "search_type": "SIMPLE", "counter": True,
-            "count_of_events": 30, "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "name": "DNS SERVFAIL ERROR",
+            "pattern": "SERVFAIL",
+            "search_type": "SIMPLE",
+            "counter": True,
+            "count_of_events": 30,
+            "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S"),
         },
         # SMTP
         {
-            "name": "SMTP RELAY DENIED", "pattern": "Relay Denied", "search_type": "SIMPLE"
+            "name": "SMTP RELAY DENIED",
+            "pattern": "Relay Denied",
+            "search_type": "SIMPLE",
         },
         {
-            "name": "SMTP MARKED AS SPAM", "pattern": "marked as spam", "search_type": "SIMPLE"
+            "name": "SMTP MARKED AS SPAM",
+            "pattern": "marked as spam",
+            "search_type": "SIMPLE",
         },
         {
-            "name": "SMTP LINK TO BLACKLISTED", "pattern": "link to blacklisted", "search_type": "SIMPLE"
+            "name": "SMTP LINK TO BLACKLISTED",
+            "pattern": "link to blacklisted",
+            "search_type": "SIMPLE",
         },
         # POP
         {
-            "name": "POP UNKNOWN COMMAND", "pattern": "Unknown command received", "search_type": "SIMPLE"
+            "name": "POP UNKNOWN COMMAND",
+            "pattern": "Unknown command received",
+            "search_type": "SIMPLE",
         },
         # FIREWALL
         {
-            "name": "FIREWALL DEFAULT RULE", "pattern": "sev=warning rule=Default_Rule",
-            "search_type": "COEFFICIENT", "coefficient": 1
+            "name": "FIREWALL DEFAULT RULE",
+            "pattern": "sev=warning rule=Default_Rule",
+            "search_type": "COEFFICIENT",
+            "coefficient": 1,
         },
         {
-            "name": "FIREWALL GERMANY RULE", "pattern": "sev=warning rule=Block_Germany",
-            "search_type": "COEFFICIENT", "coefficient": 1
+            "name": "FIREWALL GERMANY RULE",
+            "pattern": "sev=warning rule=Block_Germany",
+            "search_type": "COEFFICIENT",
+            "coefficient": 1,
         },
         {
-            "name": "FIREWALL ARP RESOLUTION FAILED", "pattern": "sev=warning cat=ARP",
-            "search_type": "COEFFICIENT", "coefficient": 1
+            "name": "FIREWALL ARP RESOLUTION FAILED",
+            "pattern": "sev=warning cat=ARP",
+            "search_type": "COEFFICIENT",
+            "coefficient": 1,
         },
         {
-            "name": "FIREWALL BAD TCP FLAG", "pattern": "sev=notice cat=TCP_FLAG",
-            "search_type": "COEFFICIENT", "coefficient": 1
+            "name": "FIREWALL BAD TCP FLAG",
+            "pattern": "sev=notice cat=TCP_FLAG",
+            "search_type": "COEFFICIENT",
+            "coefficient": 1,
         },
         {
-            "name": "FIREWALL CONN DOS", "pattern": "sev=info cat=CONN event=conn_open", "counter": True,
-            "search_type": "COEFFICIENT", "coefficient": 1, "count_of_events": 10,
-            "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S")
+            "name": "FIREWALL CONN DOS",
+            "pattern": "sev=info cat=CONN event=conn_open",
+            "counter": True,
+            "search_type": "COEFFICIENT",
+            "coefficient": 1,
+            "count_of_events": 10,
+            "period_of_events": datetime.strptime("00:01:00", "%H:%M:%S"),
         },
     ]
 
     def handle(self, *args, **options):
         print("START CREATION DEFAULT SEARCH PATTERNS:", end=" ")
         search_patterns_exists = SearchPattern.objects.filter(
-            name__in=[search_pattern.get("name") for search_pattern in self.default_search_patterns],
-            pattern__in=[search_pattern.get("pattern") for search_pattern in self.default_search_patterns]
+            name__in=[
+                search_pattern.get("name")
+                for search_pattern in self.default_search_patterns
+            ],
+            pattern__in=[
+                search_pattern.get("pattern")
+                for search_pattern in self.default_search_patterns
+            ],
         ).exists()
         if not search_patterns_exists:
-            search_patterns = SearchPattern.objects.bulk_create([SearchPattern(**fields) for fields in self.default_search_patterns])
+            search_patterns = SearchPattern.objects.bulk_create(
+                [SearchPattern(**fields) for fields in self.default_search_patterns]
+            )
             for search_pattern in search_patterns:
                 search_pattern.notification_types.set(self.websocket_notification)
                 search_pattern.save()

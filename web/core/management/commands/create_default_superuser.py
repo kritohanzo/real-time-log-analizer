@@ -1,7 +1,10 @@
-from django.core.management.base import BaseCommand, CommandError
-from users.models import User
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
+
+from django.core.management.base import BaseCommand
+
+from users.models import User
 
 
 load_dotenv(override=True)
@@ -19,4 +22,4 @@ class Command(BaseCommand):
             User.objects.create_superuser(username=username, password=password)
             print("CREATED")
         else:
-            print('ALREADY EXISTS')
+            print("ALREADY EXISTS")

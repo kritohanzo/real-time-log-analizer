@@ -7,13 +7,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('logs', '0015_alter_notificationtype_method'),
+        ("logs", "0015_alter_notificationtype_method"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='searchpattern',
-            name='coefficient',
-            field=models.FloatField(default=None, null=True, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(1)], verbose_name='Словарный коэффициент вхождения'),
+            model_name="searchpattern",
+            name="coefficient",
+            field=models.FloatField(
+                default=None,
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(0),
+                    django.core.validators.MaxValueValidator(1),
+                ],
+                verbose_name="Словарный коэффициент вхождения",
+            ),
         ),
     ]

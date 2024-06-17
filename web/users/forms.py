@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from users.models import User, RoleChoices
+
 from logs.models import NotificationType
+from users.models import RoleChoices, User
 
 
 class LoginForm(AuthenticationForm):
@@ -74,15 +75,12 @@ class UserForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={"placeholder": "Введите номер телефона", "class": "form-control"}
         ),
-    ) 
+    )
     password = forms.CharField(
         label="Пароль",
         widget=forms.PasswordInput(
-            attrs={
-                "class": "form-control",
-                "placeholder": "Введите пароль"
-            },
-            render_value=True
+            attrs={"class": "form-control", "placeholder": "Введите пароль"},
+            render_value=True,
         ),
     )
     role = forms.ChoiceField(
@@ -100,9 +98,19 @@ class UserForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple(
             attrs={"class": "form-check form-check-inline"},
         ),
-        initial=NotificationType.objects.filter(method="websocket")
+        initial=NotificationType.objects.filter(method="websocket"),
     )
 
     class Meta:
         model = User
-        fields = ("username", "name", "surname", "patronymic", "email", "phone_number", "password", "role", "notification_types")
+        fields = (
+            "username",
+            "name",
+            "surname",
+            "patronymic",
+            "email",
+            "phone_number",
+            "password",
+            "role",
+            "notification_types",
+        )

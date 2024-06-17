@@ -1,7 +1,8 @@
-from django.db import models
-from django.utils import timezone
-from django.core.validators import MaxValueValidator, MinValueValidator
 from enum import Enum
+
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+
 
 class SearchPatternTypeChoices(Enum):
     SIMPLE = "По полному вхождению"
@@ -11,7 +12,7 @@ class SearchPatternTypeChoices(Enum):
     @classmethod
     def choices(cls):
         return tuple((role.name, role.value) for role in cls)
-    
+
     @classmethod
     def choices_with_none(cls):
         return ((None, "Любой"),) + cls.choices()
@@ -22,8 +23,11 @@ class NotificationType(models.Model):
         max_length=64, verbose_name="Описание", null=False, blank=False
     )
     method = models.CharField(
-        max_length=64, verbose_name="Метод оповещения",
-        null=False, blank=False, unique=True
+        max_length=64,
+        verbose_name="Метод оповещения",
+        null=False,
+        blank=False,
+        unique=True,
     )
 
     class Meta:
@@ -33,50 +37,45 @@ class NotificationType(models.Model):
 
     def __str__(self):
         return self.description
-    
+
 
 class SearchPattern(models.Model):
     name = models.CharField(
         max_length=255,
         null=False,
         blank=False,
-        verbose_name="Краткое понятное название или описание"
+        verbose_name="Краткое понятное название или описание",
     )
-    pattern = models.CharField(
-        verbose_name="Поисковый паттерн", max_length=4096
-    )
+    pattern = models.CharField(verbose_name="Поисковый паттерн", max_length=4096)
     search_type = models.CharField(
         verbose_name="Тип поиска",
         max_length=255,
         choices=SearchPatternTypeChoices.choices(),
         null=False,
-        blank=False
+        blank=False,
     )
     notification_types = models.ManyToManyField(
-        NotificationType, through="SearchPatternNotificationType",
-        verbose_name="Типы оповещений", related_name="search_patterns",
+        NotificationType,
+        through="SearchPatternNotificationType",
+        verbose_name="Типы оповещений",
+        related_name="search_patterns",
     )
-    counter = models.BooleanField(
-        verbose_name="Повторяющееся событие", default=False
-    )
+    counter = models.BooleanField(verbose_name="Повторяющееся событие", default=False)
     # only for coefficient search type
     coefficient = models.FloatField(
         verbose_name="Словарный коэффициент вхождения",
         null=True,
         default=None,
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(1)
-        ]
+        validators=[MinValueValidator(0), MaxValueValidator(1)],
     )
     # only for count events if counter field is True
     count_of_events = models.IntegerField(
-        verbose_name="Количество событий до оповещения",
-        null=True, default=0
+        verbose_name="Количество событий до оповещения", null=True, default=0
     )
     period_of_events = models.TimeField(
         verbose_name="Период для подсчёта количества событий до оповещения",
-        null=True, default=None
+        null=True,
+        default=None,
     )
 
     class Meta:
@@ -86,18 +85,22 @@ class SearchPattern(models.Model):
 
     def __str__(self):
         return self.name
-    
+
 
 class SearchPatternNotificationType(models.Model):
     search_pattern = models.ForeignKey(
-        SearchPattern, on_delete=models.SET_NULL,
-        null=True, related_name="search_pattern_notification_types",
-        verbose_name="Поисковый паттерн типа оповещения"
+        SearchPattern,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="search_pattern_notification_types",
+        verbose_name="Поисковый паттерн типа оповещения",
     )
     notification_type = models.ForeignKey(
-        NotificationType, on_delete=models.SET_NULL,
-        null=True, related_name="notification_type_search_patterns",
-        verbose_name="Тип оповещения поискового паттерна"
+        NotificationType,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="notification_type_search_patterns",
+        verbose_name="Тип оповещения поискового паттерна",
     )
 
     class Meta:
@@ -117,7 +120,7 @@ class LogType(models.Model):
         SearchPattern,
         through="LogTypeSearchPattern",
         related_name="log_types",
-        verbose_name="Подвязанные поисковые паттерны"
+        verbose_name="Подвязанные поисковые паттерны",
     )
 
     class Meta:
@@ -131,10 +134,16 @@ class LogType(models.Model):
 
 class LogTypeSearchPattern(models.Model):
     log_type = models.ForeignKey(
-        LogType, on_delete=models.SET_NULL, null=True, related_name="log_type_search_patterns"
+        LogType,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="log_type_search_patterns",
     )
     search_pattern = models.ForeignKey(
-        SearchPattern, on_delete=models.SET_NULL, null=True, related_name="search_pattern_log_types"
+        SearchPattern,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="search_pattern_log_types",
     )
 
     class Meta:
@@ -147,7 +156,9 @@ class LogTypeSearchPattern(models.Model):
 
 
 class LogFile(models.Model):
-    name = models.CharField(verbose_name="Краткое понятное название или описание", max_length=255)
+    name = models.CharField(
+        verbose_name="Краткое понятное название или описание", max_length=255
+    )
     path = models.CharField(verbose_name="Физический путь до файла", max_length=255)
     type = models.ForeignKey(
         LogType,
@@ -156,12 +167,10 @@ class LogFile(models.Model):
         related_name="log_files",
     )
     one_time_scan = models.BooleanField(
-        verbose_name="Одноразовое сканирование",
-        default=False
+        verbose_name="Одноразовое сканирование", default=False
     )
     one_time_scan_is_done = models.BooleanField(
-        verbose_name="Одноразовое сканирование заверешно",
-        default=False
+        verbose_name="Одноразовое сканирование заверешно", default=False
     )
     last_positions = models.IntegerField(
         verbose_name="Последняя позиция при чтении", default=0
@@ -177,9 +186,7 @@ class LogFile(models.Model):
 
 
 class AnomalousEvent(models.Model):
-    text = models.CharField(
-        verbose_name="Текст", max_length=2048
-    )
+    text = models.CharField(verbose_name="Текст", max_length=2048)
     fact_datetime = models.DateTimeField(
         verbose_name="Фактическое дата и время", null=True, blank=True
     )
@@ -193,13 +200,13 @@ class AnomalousEvent(models.Model):
         related_name="anomalous_events",
     )
     count_of_events = models.IntegerField(
-        verbose_name="Количество событий в рамках периода",
-        null=True,
-        default=0
+        verbose_name="Количество событий в рамках периода", null=True, default=0
     )
     detected_search_pattern = models.ForeignKey(
-        SearchPattern, on_delete=models.SET_NULL,
-        null=True, related_name='anomalous_events',
+        SearchPattern,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="anomalous_events",
     )
 
     class Meta:
