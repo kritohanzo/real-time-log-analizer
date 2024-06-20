@@ -33,19 +33,22 @@ def analyze_log_lines(log_file_id: int, lines: list[str]) -> None:
         datetime_of_line = get_datetime_from_line(line)
         ip_of_line = get_ip_from_line(line)
         for search_pattern in search_patterns:
-            match search_pattern.search_type:
-                case "SIMPLE":
-                    analyze_simple(
-                        line, search_pattern, log_file, datetime_of_line, ip_of_line
-                    )
-                case "REGEX":
-                    analyze_regex(
-                        line, search_pattern, log_file, datetime_of_line, ip_of_line
-                    )
-                case "COEFFICIENT":
-                    analyze_coefficient(
-                        line, search_pattern, log_file, datetime_of_line, ip_of_line
-                    )
+            try:
+                match search_pattern.search_type:
+                    case "SIMPLE":
+                        analyze_simple(
+                            line, search_pattern, log_file, datetime_of_line, ip_of_line
+                        )
+                    case "REGEX":
+                        analyze_regex(
+                            line, search_pattern, log_file, datetime_of_line, ip_of_line
+                        )
+                    case "COEFFICIENT":
+                        analyze_coefficient(
+                            line, search_pattern, log_file, datetime_of_line, ip_of_line
+                        )
+            except Exception as e:
+                print("CANT SCAN, BAD LINE, ERROR: " + str(e))
     if log_file.one_time_scan:
         log_file.one_time_scan_is_done = True
         log_file.save()
